@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farmacia del Globo · Suite de Herramientas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal:       #2a8080;
+    --teal-dark:  #1d5f5f;
+    --teal-light: #3aa0a0;
+    --teal-pale:  #e8f4f4;
+    --teal-faint: #f2fafa;
+    --gold:       #c8a96e;
+    --gold-light: #e8d5a8;
+    --ink:        #1a2626;
+    --ink-mid:    #3a4f4f;
+    --ink-soft:   #6b8080;
+    --cream:      #faf8f3;
+    --white:      #ffffff;
+    --border:     #d0e4e4;
+    --shadow:     0 2px 24px rgba(42,128,128,0.10);
+    --shadow-lg:  0 8px 48px rgba(42,128,128,0.16);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--teal-dark);
+    color: white;
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.25);
+  }
+
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .header-logo {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+
+  .header-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+  }
+
+  .header-subtitle {
+    font-size: 0.65rem;
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-top: 1px;
+  }
+
+  .header-nav {
+    display: flex;
+    gap: 0;
+  }
+
+  .header-nav a {
+    color: rgba(255,255,255,0.75);
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0 1rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .header-nav a:hover,
+  .header-nav a.active {
+    color: white;
+    border-bottom-color: var(--gold);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 60%, var(--teal-light) 100%);
+    color: white;
+    padding: 5rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 70% 50%, rgba(200,169,110,0.12) 0%, transparent 60%),
+                      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  .hero-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .hero-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    opacity: 0.65;
+    margin-bottom: 1rem;
+  }
+
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    font-weight: 300;
+    line-height: 1.1;
+    margin-bottom: 1.2rem;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .hero-desc {
+    font-size: 1rem;
+    font-weight: 300;
+    opacity: 0.85;
+    max-width: 540px;
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 3rem;
+  }
+
+  .hero-stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--gold-light);
+    line-height: 1;
+  }
+
+  .hero-stat-label {
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.65;
+    margin-top: 4px;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.9rem;
+    font-weight: 400;
+    color: var(--teal-dark);
+  }
+
+  .section-count {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* ── TOOL CARDS ── */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 4rem;
+  }
+
+  .tool-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.25s, box-shadow 0.25s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tool-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .tool-card-header {
+    padding: 1.5rem 1.5rem 1.2rem;
+    border-bottom: 1px solid var(--teal-pale);
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background: linear-gradient(135deg, var(--teal-faint), white);
+  }
+
+  .tool-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    background: var(--teal-pale);
+    border: 1px solid var(--border);
+  }
+
+  .tool-icon.live { background: #e8f5e9; border-color: #a5d6a7; }
+
+  .tool-meta { flex: 1; }
+
+  .tool-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .tool-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    margin-top: 5px;
+  }
+
+  .tag-live    { background: #e8f5e9; color: #2e7d32; }
+  .tag-roadmap { background: #fff3e0; color: #e65100; }
+  .tag-idea    { background: #f3e5f5; color: #6a1b9a; }
+
+  .tag-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .tag-live .tag-dot    { animation: pulse 2s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+  }
+
+  .tool-card-body {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .tool-desc {
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: var(--ink-mid);
+  }
+
+  .tool-section-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 0.4rem;
+  }
+
+  .tool-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .pill {
+    font-size: 0.75rem;
+    font-weight: 400;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--teal-pale);
+    color: var(--teal-dark);
+    border: 1px solid var(--border);
+  }
+
+  .pill.done {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-color: #a5d6a7;
+  }
+
+  .pill.pending {
+    background: #fff8e1;
+    color: #f57f17;
+    border-color: #ffe082;
+  }
+
+  .pill.aspirational {
+    background: #f3e5f5;
+    color: #6a1b9a;
+    border-color: #ce93d8;
+    font-style: italic;
+  }
+
+  .tool-card-footer {
+    padding: 1rem 1.5rem;
+    background: var(--teal-faint);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    padding: 7px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.18s;
+  }
+
+  .btn-primary {
+    background: var(--teal);
+    color: white;
+  }
+
+  .btn-primary:hover { background: var(--teal-dark); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--teal);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover {
+    background: var(--teal-pale);
+    border-color: var(--teal);
+  }
+
+  /* ── MODAL / DETAIL PANEL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 30, 30, 0.55);
+    z-index: 200;
+    backdrop-filter: blur(3px);
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    animation: fadeIn 0.2s;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .modal {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 720px;
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+    animation: slideUp 0.25s cubic-bezier(.16,1,.3,1);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  .modal-header {
+    padding: 2rem 2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    background: linear-gradient(135deg, var(--teal-faint), white);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    background: var(--teal-pale);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .modal-close:hover { background: var(--teal); color: white; border-color: var(--teal); }
+
+  .modal-tool-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-top: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .modal-body {
+    padding: 1.75rem 2rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .modal-section h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--teal-dark);
+    margin-bottom: 0.6rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--teal-pale);
+  }
+
+  .modal-section p,
+  .modal-section li {
+    font-size: 0.88rem;
+    line-height: 1.75;
+    color: var(--ink-mid);
+  }
+
+  .modal-section ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .modal-section li::before {
+    content: '→ ';
+    color: var(--teal);
+    font-weight: 600;
+  }
+
+  .modal-backlogs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .backlog-col h4 {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 0.6rem;
+  }
+
+  .backlog-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--teal-pale);
+    font-size: 0.83rem;
+    color: var(--ink-mid);
+    line-height: 1.4;
+  }
+
+  .backlog-item:last-child { border-bottom: none; }
+
+  .backlog-num {
+    font-size: 0.68rem;
+    font-weight: 600;
+    background: var(--teal-pale);
+    color: var(--teal);
+    border-radius: 4px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .discarded-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .pill-discarded {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: #f5f5f5;
+    color: #9e9e9e;
+    border: 1px solid #e0e0e0;
+    text-decoration: line-through;
+  }
+
+  .modal-footer {
+    padding: 1.25rem 2rem;
+    border-top: 1px solid var(--border);
+    background: var(--teal-faint);
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .url-chip {
+    font-family: 'Jost', monospace;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ── VISION SECTION ── */
+  .vision-box {
+    background: linear-gradient(135deg, var(--teal-dark), var(--teal));
+    color: white;
+    border-radius: 16px;
+    padding: 2.5rem 3rem;
+    margin-bottom: 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .vision-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 80% 50%, rgba(200,169,110,0.15) 0%, transparent 55%);
+    pointer-events: none;
+  }
+
+  .vision-box h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem;
+    font-weight: 300;
+    margin-bottom: 0.8rem;
+  }
+
+  .vision-box h2 em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .vision-box p {
+    font-size: 0.9rem;
+    font-weight: 300;
+    opacity: 0.85;
+    line-height: 1.8;
+    max-width: 640px;
+  }
+
+  .vision-pillars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-top: 1.75rem;
+  }
+
+  .vision-pillar {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    backdrop-filter: blur(4px);
+  }
+
+  .vision-pillar-icon {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .vision-pillar-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.3rem;
+  }
+
+  .vision-pillar-desc {
+    font-size: 0.76rem;
+    opacity: 0.75;
+    line-height: 1.5;
+    font-weight: 300;
+  }
+
+  /* ── TIMELINE / ROADMAP ── */
+  .timeline {
+    position: relative;
+    padding-left: 2rem;
+    margin-bottom: 4rem;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--teal), var(--teal-pale));
+  }
+
+  .timeline-item {
+    position: relative;
+    padding: 0 0 2rem 1.75rem;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: 8px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--teal);
+    border: 3px solid var(--cream);
+    box-shadow: 0 0 0 2px var(--teal);
+  }
+
+  .timeline-item.future::before {
+    background: var(--teal-pale);
+    border-color: var(--cream);
+    box-shadow: 0 0 0 2px var(--border);
+  }
+
+  .timeline-phase {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 0.25rem;
+  }
+
+  .timeline-item.future .timeline-phase { color: var(--ink-soft); }
+
+  .timeline-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+  }
+
+  .timeline-desc {
+    font-size: 0.84rem;
+    color: var(--ink-mid);
+    line-height: 1.6;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink);
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+
+  footer strong { color: var(--gold-light); font-weight: 400; }
+
+  /* ── UTILS ── */
+  .mt-xs { margin-top: 0.5rem; }
+  .mt-sm { margin-top: 1rem; }
+  .mt-md { margin-top: 2rem; }
+
+  @media (max-width: 700px) {
+    .hero-stats { flex-wrap: wrap; gap: 1.5rem; }
+    .tools-grid { grid-template-columns: 1fr; }
+    .modal-backlogs { grid-template-columns: 1fr; }
+    .vision-pillars { grid-template-columns: 1fr; }
+    .header-nav { display: none; }
+    .modal { border-radius: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="header-brand">
+      <svg class="header-logo" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="18" cy="14" rx="11" ry="13" fill="#3aa0a0" stroke="#c8a96e" stroke-width="1.2"/>
+        <path d="M10 14 Q18 8 26 14" stroke="#1d5f5f" stroke-width="1.2" fill="none"/>
+        <path d="M10 17 Q18 11 26 17" stroke="#1d5f5f" stroke-width="0.8" fill="none"/>
+        <path d="M11 20 Q18 14 25 20" stroke="#1d5f5f" stroke-width="0.6" fill="none"/>
+        <rect x="15" y="26.5" width="6" height="4" rx="1" fill="#c8a96e" stroke="#c8a96e" stroke-width="0.6"/>
+        <path d="M14 26 Q18 24 22 26" stroke="#c8a96e" stroke-width="1" fill="none"/>
+      </svg>
+      <div>
+        <div class="header-title">Farmacia del Globo</div>
+        <div class="header-subtitle">Suite · Herramientas de Gestión</div>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <a href="#activas" class="active">Activas</a>
+      <a href="#en-desarrollo">En desarrollo</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#vision">Visión</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Suite de Gestión Interna · Farmacia del Globo Carretas</div>
+    <h1>Menos trabajo manual.<br><em>Más tiempo para lo que importa.</em></h1>
+    <p class="hero-desc">Un ecosistema de herramientas digitales diseñadas a medida para automatizar, centralizar y visualizar la operativa diaria de la farmacia.</p>
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-num">1</div>
+        <div class="hero-stat-label">Herramienta activa</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">7</div>
+        <div class="hero-stat-label">En el roadmap</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">365</div>
+        <div class="hero-stat-label">Días de operativa</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- ── HERRAMIENTAS ACTIVAS ── -->
+  <section id="activas">
+    <div class="section-header">
+      <h2 class="section-title">Herramientas activas</h2>
+      <span class="section-count">1 herramienta</span>
+    </div>
+
+    <div class="tools-grid">
+
+      <!-- CUADRE DE CAJA -->
+      <div class="tool-card" onclick="openModal('cuadre')">
+        <div class="tool-card-header">
+          <div class="tool-icon live">💰</div>
+          <div class="tool-meta">
+            <div class="tool-name">Cuadre de Caja</div>
+            <span class="tool-tag tag-live"><span class="tag-dot"></span>En producción</span>
+          </div>
+        </div>
+        <div class="tool-card-body">
+          <p class="tool-desc">Conciliación diaria de caja: cruza automáticamente los datos de Farmatic, La Caixa y el efectivo recogido por cada empleada. Genera el cierre mensual en Excel con un clic.</p>
+          <div>
+            <div class="tool-section-label">Funcionalidades principales</div>
+            <div class="tool-pills">
+              <span class="pill done">Libro de Caja</span>
+              <span class="pill done">Integración Farmatic</span>
+              <span class="pill done">Integración La Caixa</span>
+              <span class="pill done">Google Forms empleadas</span>
+              <span class="pill done">Estadísticas & KPIs</span>
+              <span class="pill done">Comisión Lucía</span>
+              <span class="pill done">Export Excel</span>
+              <span class="pill done">Arqueo físico</span>
+              <span class="pill pending">Atajos teclado</span>
+              <span class="pill pending">Informe gastos/ingresos</span>
+            </div>
+          </div>
+        </div>
+        <div class="tool-card-footer">
+          <a href="https://jpmesagarcia.github.io/cuadre-caja/cuadre_caja_3.html" target="_blank" class="btn btn-primary" onclick="event.stopPropagation()">
+            ↗ Abrir herramienta
+          </a>
+          <button class="btn btn-ghost" onclick="event.stopPropagation(); openModal('cuadre')">Ver detalle</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── EN DESARROLLO / ROADMAP ── -->
+  <section id="en-desarrollo">
+    <div class="section-header">
+      <h2 class="section-title">En el radar</h2>
+      <span class="section-count">7 herramientas</span>
+    </div>
+
+    <div class="tools-grid">
+
+      <!-- CUADRO DE MANDO -->
+      <div class="tool-card" onclick="openModal('dashboard')">
+        <div class="tool-card-header">
+          <div class="tool-icon">📊</div>
+          <div class="tool-meta">
+            <div class="tool-name">Cuadro de Mando Farmatic</div>
+            <span class="tool-tag tag-roadmap"><span class="tag-dot"></span>En exploración</span>
+          </div>
+        </div>
+        <div class="tool-card-body">
+          <p class="tool-desc">Dashboard web sobre la base de datos de Farmatic. Ventas, stock, márgenes, clientes y rendimiento por empleada — sin depender de Sisfarma.</p>
+          <div>
+            <div class="tool-section-label">Aspiracional</div>
+            <div class="tool-pills">
+              <span class="pill aspirational">KPIs en tiempo real</span>
+              <span class="pill aspirational">Ventas por empleada</span>
+              <span class="pill aspirational">Top productos & márgenes</span>
+              <span class="pill aspirational">Gráficas evolutivas</span>
+            </div>
+          </div>
+        </div>
+        <div class="tool-card-footer">
+          <button class="btn btn-ghost">Ver detalle</button>
+        </div>
+      </div>
+
+      <!-- GESTIÓN FACTURAS -->
+      <div class="tool-card" onclick="openModal('facturas')">
+        <div class="tool-card-header">
+          <div class="tool-icon">🧾</div>
+          <div class="tool-meta">
+            <div class="tool-name">Gestión de Facturas</div>
+            <span class="tool-tag tag-idea"><span class="tag-dot"></span>Idea</span>
+          </div>
+        </div>
+        <div class="tool-card-body">
+          <p class="tool-desc">Registro de facturas recibidas, conciliación con pagos y generación automática del listado mensual para la gestoría.</p>
+          <div>
+            <div class="tool-section-label">Aspiracional</div>
+            <div class="tool-pills">
+              <span class="pill aspirational">Listado gestoría automático</span>
+              <span class="pill aspirational">Casa facturas con pagos</span>
+              <span class="pill aspirational">Alertas vencimiento</span>
+            </div>
+          </div>
+        </div>
+        <div class="tool-card-footer">
+          <button class="btn btn-ghost">Ver detalle</button>
+        </div>
+      </div>
+
+      <!-- GESTOR DOCUMENTAL -->
+      <div class="tool-card" onclick="openModal('documental')">
+        <div class="tool-card-header">
+          <div class="tool-icon">🗂️</div>
+          <div class="tool-meta">
+            <div class="tool-name">Gestor Documental</div>
+            <span class="tool-tag tag-idea"><span class="tag-dot"></span>Idea</span>
+          </div>
+        </div>
+        <div class="tool-card-body">
+          <p class="tool-desc">Archivo digital de facturas y documentos con validez legal. Búsqueda instantánea, sin papel, sin extravíos.</p>
+          <div>
+            <div class="tool-section-label">Aspiracional</div>
+            <div class="tool-pills">
+              <span class="pill aspirational">Archivo legal digital</span>
+              <span class="pill aspirational">Búsqueda por proveedor/fecha</span>
+              <span class="pill aspirational">Integrado con Facturas</span>
+            </div>
+          </div>
+        </div>
+        <div class="tool-card-footer">
+          <button class="btn btn-ghost">Ver detalle</button>
+        </div>
+      </div>
+
+      <!-- INCENTIVOS -->
+      <div class="tool-card" onclick="openModal('incentivos')">
+        <div class="tool-card-header">
+          <div class="tool-icon">🏆</div>
+          <div class="tool-meta">
+            <div class="tool-name">Gestión de Incentivos</div>
+            <span class="tool-tag tag-idea"><span class="tag-dot"></span>Idea</span>
+          </div>
+        </div>
+        <div class="tool-card-body">
+          <p class="tool-desc">Cálculo y seguimiento de incentivos para todo el equipo. Va más allá de la comisión de Lucía e integra métricas de rendimiento por empleada.</p>
+          <div>
+            <div class="tool-section-label">Aspiracional</div>
+            <div class="tool-pills">
+              <span class="pill aspirational">Comisiones automáticas</span>
+              <span class="pill aspirational">Ranking de ventas</span>
+              <span class="pill aspirational">Histórico por empleada</span>
+            </div>
+          </div>
+        </div>
+        <div class="tool-card-footer">
+          <button class="btn btn-ghost">Ver detalle</button>
+        </div>
+      </div>
+
+      <!-- HORARIOS Y TURNOS -->
+      <div class="tool-card" onclick="openModal('horarios')">
+        <div class="tool-card-header">
+          <div class="tool-icon">📅</div>
+          <div class="tool-meta">
+            <div class="tool-name">Horarios y Turnos</div>
+            <span class="tool-tag tag-idea"><span class="tag-dot"></span>Idea</span>
+          </div>
+        </div>
+        <div class="tool-card-body">
+          <p class="tool-desc">Gestión de calendarios y rotaciones del equipo. Visibilidad clara para todos, sin WhatsApps ni confusiones.</p>
+          <div>
+            <div class="tool-section-label">Aspiracional</div>
+            <div class="tool-pills">
+              <span class="pill aspirational">Calendario visual por semana</span>
+              <span class="pill aspirational">Gestión de vacaciones</span>
+              <span class="pill aspirational">Notificaciones al equipo</span>
+            </div>
+          </div>
+        </div>
+        <div class="tool-card-footer">
+          <button class="btn btn-ghost">Ver detalle</button>
+        </div>
+      </div>
+
+      <!-- GESTOR DE TAREAS -->
+      <div class="tool-card" onclick="openModal('tareas')">
+        <div class="tool-card-header">
+          <div class="tool-icon">✅</div>
+          <div class="tool-meta">
+            <div class="tool-name">Gestor de Tareas</div>
+            <span class="tool-tag tag-idea"><span class="tag-dot"></span>Idea</span>
+          </div>
+        </div>
+        <div class="tool-card-body">
+          <p class="tool-desc">Asignación y seguimiento de tareas internas del equipo. Todo en un sitio, sin perder nada en el chat de grupo.</p>
+          <div>
+            <div class="tool-section-label">Aspiracional</div>
+            <div class="tool-pills">
+              <span class="pill aspirational">Asignación por empleada</span>
+              <span class="pill aspirational">Prioridades & fechas límite</span>
+              <span class="pill aspirational">Vista por estado</span>
+            </div>
+          </div>
+        </div>
+        <div class="tool-card-footer">
+          <button class="btn btn-ghost">Ver detalle</button>
+        </div>
+      </div>
+
+      <!-- GESTIÓN PROMOCIONES -->
+      <div class="tool-card" onclick="openModal('promociones')">
+        <div class="tool-card-header">
+          <div class="tool-icon">🎯</div>
+          <div class="tool-meta">
+            <div class="tool-name">Gestión de Promociones</div>
+            <span class="tool-tag tag-idea"><span class="tag-dot"></span>Idea</span>
+          </div>
+        </div>
+        <div class="tool-card-body">
+          <p class="tool-desc">Planificación y seguimiento del impacto de promociones y campañas. Mide qué funciona y qué no, con datos reales.</p>
+          <div>
+            <div class="tool-section-label">Aspiracional</div>
+            <div class="tool-pills">
+              <span class="pill aspirational">Calendario de campañas</span>
+              <span class="pill aspirational">Impacto en ventas</span>
+              <span class="pill aspirational">Comparativa A/B</span>
+            </div>
+          </div>
+        </div>
+        <div class="tool-card-footer">
+          <button class="btn btn-ghost">Ver detalle</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── VISION ── -->
+  <section id="vision">
+    <div class="vision-box">
+      <h2>La <em>visión</em> a largo plazo</h2>
+      <p>Un ecosistema integrado donde cada herramienta habla con las demás: las ventas de Farmatic alimentan los incentivos, las facturas se cruzan automáticamente con los pagos del banco, y el equipo tiene toda la información que necesita en un solo lugar — sin depender de terceros ni pagar licencias innecesarias.</p>
+      <div class="vision-pillars">
+        <div class="vision-pillar">
+          <div class="vision-pillar-icon">🔗</div>
+          <div class="vision-pillar-title">Todo conectado</div>
+          <div class="vision-pillar-desc">Farmatic, La Caixa, Google Drive y las herramientas propias comparten datos sin trabajo manual.</div>
+        </div>
+        <div class="vision-pillar">
+          <div class="vision-pillar-icon">⚡</div>
+          <div class="vision-pillar-title">Cero dependencias externas</div>
+          <div class="vision-pillar-desc">Sin Sisfarma, sin suscripciones caras. Herramientas propias, datos propios, control total.</div>
+        </div>
+        <div class="vision-pillar">
+          <div class="vision-pillar-icon">👥</div>
+          <div class="vision-pillar-title">El equipo en el centro</div>
+          <div class="vision-pillar-desc">Las empleadas acceden solo a lo que necesitan, con su información al día y sin fricciones.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ROADMAP TIMELINE ── -->
+  <section id="roadmap">
+    <div class="section-header">
+      <h2 class="section-title">Línea de tiempo</h2>
+      <span class="section-count">Priorización orientativa</span>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-phase">Ahora · Sprint activo</div>
+        <div class="timeline-title">Cuadre de Caja — flecos pendientes</div>
+        <div class="timeline-desc">Atajos de teclado, quitar cierre mes anterior, transferencias en Libro de Caja, top ventas con Venta Neta, nueva pestaña ingresos/gastos.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-phase">Siguiente · Exploración técnica</div>
+        <div class="timeline-title">Cuadro de Mando Farmatic</div>
+        <div class="timeline-desc">Localizar la cadena de conexión SQL de Farmatic y definir arquitectura. Es el proyecto de mayor impacto y desbloquea el resto (incentivos, comisiones automáticas).</div>
+      </div>
+      <div class="timeline-item future">
+        <div class="timeline-phase">Corto plazo · Bien definido</div>
+        <div class="timeline-title">Gestión de Facturas y Gestoría</div>
+        <div class="timeline-desc">Herramienta muy concreta y de alto valor inmediato. Requiere definir el flujo actual de facturas y el formato exacto que pide la gestoría.</div>
+      </div>
+      <div class="timeline-item future">
+        <div class="timeline-phase">Medio plazo · Integración</div>
+        <div class="timeline-title">Gestor Documental + Incentivos</div>
+        <div class="timeline-desc">El documental se construye sobre lo que defina Facturas. Los incentivos sobre lo que genere el Cuadro de Mando.</div>
+      </div>
+      <div class="timeline-item future">
+        <div class="timeline-phase">Largo plazo · Equipo</div>
+        <div class="timeline-title">Horarios, Tareas y Promociones</div>
+        <div class="timeline-desc">Herramientas orientadas al día a día del equipo y a la operativa comercial. Pueden desarrollarse en paralelo o como módulos independientes.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <strong>Farmacia del Globo Carretas</strong> · Suite de herramientas internas · Documento vivo, actualizado continuamente
+</footer>
+
+<!-- ── MODALS ── -->
+
+<!-- MODAL: Cuadre de Caja -->
+<div class="modal-overlay" id="modal-cuadre">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="tool-tag tag-live"><span class="tag-dot"></span>En producción</span>
+      <div class="modal-tool-name">💰 Cuadre de Caja</div>
+      <button class="modal-close" onclick="closeModal('cuadre')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="modal-section">
+        <h3>¿Qué hace?</h3>
+        <p>Automatiza el cuadre diario de caja de la farmacia. Cruza tres fuentes de datos — el informe de ventas de Farmatic, los cobros del TPV de La Caixa y el efectivo recogido por cada empleada — y genera el cierre mensual completo en Excel con un clic.</p>
+      </div>
+
+      <div class="modal-section">
+        <h3>Guía de uso</h3>
+        <ul>
+          <li>Carga el Excel de <strong>Farmatic</strong> (informe estadístico del mes) desde Google Drive o subiéndolo manualmente.</li>
+          <li>Carga el Excel de <strong>La Caixa</strong> — la app filtra automáticamente los cobros TPV (líneas ON) y las retiradas de cajero.</li>
+          <li>El efectivo de cada empleada se introduce vía <strong>Google Forms</strong> o directamente en la app, día a día.</li>
+          <li>Usa la pestaña <strong>Estadísticas</strong> para ver KPIs del mes: Venta Neta acumulada, previsión de cierre, comisión variable de Lucía, top 5 días.</li>
+          <li>Cuando el mes esté completo, pulsa <strong>Exportar Excel</strong> para generar el informe mensual con todas las pestañas formateadas.</li>
+          <li>La pestaña <strong>Arqueo</strong> permite hacer el recuento físico de caja: introduce los billetes y monedas y la app calcula la diferencia automáticamente.</li>
+        </ul>
+      </div>
+
+      <div class="modal-section">
+        <h3>Backlog</h3>
+        <div class="modal-backlogs">
+          <div class="backlog-col">
+            <h4>✦ Pendiente</h4>
+            <div class="backlog-item"><span class="backlog-num">1</span>Atajos de teclado (Tab entre empleadas, Enter ticket Lucía)</div>
+            <div class="backlog-item"><span class="backlog-num">2</span>Quitar cajita "Cierre mes anterior" de pestaña Cajas</div>
+            <div class="backlog-item"><span class="backlog-num">3</span>Compras con pago por transferencia en Libro de Caja</div>
+            <div class="backlog-item"><span class="backlog-num">4</span>Top ventas: mostrar Venta Neta en vez de Venta Farmacia</div>
+            <div class="backlog-item"><span class="backlog-num">5</span>Nueva pestaña: ingresos no-ventas + recopilación gastos, exportable</div>
+          </div>
+          <div class="backlog-col">
+            <h4>✕ Descartado</h4>
+            <div class="discarded-list">
+              <span class="pill-discarded">Comparativa mensual</span>
+              <span class="pill-discarded">Export PDF</span>
+              <span class="pill-discarded">Modo oscuro</span>
+              <span class="pill-discarded">Autocompletar mes</span>
+            </div>
+            <h4 class="mt-sm">✦ v2.0 — Futuro</h4>
+            <div class="backlog-item"><span class="backlog-num">★</span>Carga automática Farmatic vía SQL Server</div>
+            <div class="backlog-item"><span class="backlog-num">★</span>Roles: visibilidad por empleada</div>
+            <div class="backlog-item"><span class="backlog-num">★</span>Autoentrada de empleadas desde la app</div>
+            <div class="backlog-item"><span class="backlog-num">★</span>Notificaciones automáticas por correo</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <span class="url-chip">jpmesagarcia.github.io/cuadre-caja/cuadre_caja_3.html</span>
+      <a href="https://jpmesagarcia.github.io/cuadre-caja/cuadre_caja_3.html" target="_blank" class="btn btn-primary">↗ Abrir</a>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Dashboard -->
+<div class="modal-overlay" id="modal-dashboard">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="tool-tag tag-roadmap"><span class="tag-dot"></span>En exploración</span>
+      <div class="modal-tool-name">📊 Cuadro de Mando Farmatic</div>
+      <button class="modal-close" onclick="closeModal('dashboard')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <h3>¿Qué hará?</h3>
+        <p>Dashboard web que se conecta directamente a la base de datos SQL Server de Farmatic y expone los datos de negocio en tiempo real: ventas, márgenes, stock, clientes y rendimiento por empleada. Sin depender de Sisfarma ni de exportaciones manuales.</p>
+      </div>
+      <div class="modal-section">
+        <h3>Estado actual</h3>
+        <ul>
+          <li>Farmatic usa SQL Server internamente — los datos están accesibles si se localiza la cadena de conexión.</li>
+          <li>El sincronizador de Sisfarma que usabais antes accedía a estas tablas: albaranes, ventas, clientes, pedidos, stock, recetas, familias, proveedores.</li>
+          <li><strong>Bloqueante:</strong> localizar el archivo <code>Farmatic.exe.config</code> en el servidor para obtener la cadena de conexión SQL.</li>
+        </ul>
+      </div>
+      <div class="modal-section">
+        <h3>Visión de contenido</h3>
+        <div class="tool-pills mt-xs">
+          <span class="pill aspirational">KPIs diarios / mensuales</span>
+          <span class="pill aspirational">Gráficas de evolución</span>
+          <span class="pill aspirational">Ventas por empleada</span>
+          <span class="pill aspirational">Top productos & familias</span>
+          <span class="pill aspirational">Análisis de márgenes</span>
+          <span class="pill aspirational">Control de stock</span>
+          <span class="pill aspirational">Clientes e historial</span>
+          <span class="pill aspirational">Integración Cuadre de Caja</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span class="url-chip">Pendiente de desarrollo</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Facturas -->
+<div class="modal-overlay" id="modal-facturas">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="tool-tag tag-idea"><span class="tag-dot"></span>Idea</span>
+      <div class="modal-tool-name">🧾 Gestión de Facturas</div>
+      <button class="modal-close" onclick="closeModal('facturas')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <h3>¿Qué hará?</h3>
+        <p>Centraliza el registro de facturas recibidas, las casa automáticamente con los pagos realizados y genera el listado mensual que se envía a la gestoría — eliminando el trabajo manual de consolidación.</p>
+      </div>
+      <div class="modal-section">
+        <h3>Por definir antes de empezar</h3>
+        <ul>
+          <li>¿Cómo llegan las facturas hoy? (email, papel, portal del proveedor...)</li>
+          <li>¿Qué formato exacto pide la gestoría para el listado mensual?</li>
+          <li>¿Se integra con el Gestor Documental o son herramientas separadas?</li>
+          <li>¿Se cruza con los movimientos de La Caixa para casar pagos?</li>
+        </ul>
+      </div>
+      <div class="modal-section">
+        <h3>Visión de contenido</h3>
+        <div class="tool-pills mt-xs">
+          <span class="pill aspirational">Registro de facturas recibidas</span>
+          <span class="pill aspirational">Casa facturas con pagos</span>
+          <span class="pill aspirational">Listado gestoría automático</span>
+          <span class="pill aspirational">Alertas de vencimiento</span>
+          <span class="pill aspirational">Filtros por proveedor/período</span>
+          <span class="pill aspirational">Export Excel/email automático</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span class="url-chip">Pendiente de definición</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Documental -->
+<div class="modal-overlay" id="modal-documental">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="tool-tag tag-idea"><span class="tag-dot"></span>Idea</span>
+      <div class="modal-tool-name">🗂️ Gestor Documental</div>
+      <button class="modal-close" onclick="closeModal('documental')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <h3>¿Qué hará?</h3>
+        <p>Archivo digital de facturas y documentos con validez legal. Almacenamiento organizado, búsqueda instantánea por proveedor o fecha, y cumplimiento con los requisitos legales de conservación de documentos en España.</p>
+      </div>
+      <div class="modal-section">
+        <h3>Por definir</h3>
+        <ul>
+          <li>Requisitos legales de conservación en España (factura electrónica verificable, período mínimo 5-6 años...)</li>
+          <li>¿Integrado con Gestión de Facturas o independiente?</li>
+          <li>Almacenamiento: Google Drive estructurado, servidor propio u otro.</li>
+        </ul>
+      </div>
+      <div class="modal-section">
+        <h3>Visión</h3>
+        <div class="tool-pills mt-xs">
+          <span class="pill aspirational">Subida y etiquetado de documentos</span>
+          <span class="pill aspirational">Búsqueda por proveedor/fecha/tipo</span>
+          <span class="pill aspirational">Validez legal garantizada</span>
+          <span class="pill aspirational">Vinculado a facturas registradas</span>
+          <span class="pill aspirational">Alertas de documentos próximos a vencer</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span class="url-chip">Pendiente de definición</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Incentivos -->
+<div class="modal-overlay" id="modal-incentivos">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="tool-tag tag-idea"><span class="tag-dot"></span>Idea</span>
+      <div class="modal-tool-name">🏆 Gestión de Incentivos</div>
+      <button class="modal-close" onclick="closeModal('incentivos')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <h3>¿Qué hará?</h3>
+        <p>Va más allá de la comisión de Lucía (ya implementada en Cuadre de Caja) y extiende el seguimiento de incentivos a todo el equipo, con métricas de rendimiento y cálculo automático a partir de los datos de Farmatic.</p>
+      </div>
+      <div class="modal-section">
+        <h3>Por definir</h3>
+        <ul>
+          <li>¿Qué estructura de incentivos existe hoy para el equipo?</li>
+          <li>¿Qué métricas se usan? (ventas, tickets, familias específicas...)</li>
+          <li>¿Se gestiona separado o integrado en el Cuadro de Mando?</li>
+        </ul>
+      </div>
+      <div class="modal-section">
+        <h3>Visión</h3>
+        <div class="tool-pills mt-xs">
+          <span class="pill aspirational">Cálculo automático de comisiones</span>
+          <span class="pill aspirational">Ranking de ventas por empleada</span>
+          <span class="pill aspirational">Histórico mensual por persona</span>
+          <span class="pill aspirational">Objetivos y seguimiento</span>
+          <span class="pill aspirational">Exportable para nóminas</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span class="url-chip">Depende del Cuadro de Mando Farmatic</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Horarios -->
+<div class="modal-overlay" id="modal-horarios">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="tool-tag tag-idea"><span class="tag-dot"></span>Idea</span>
+      <div class="modal-tool-name">📅 Horarios y Turnos</div>
+      <button class="modal-close" onclick="closeModal('horarios')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <h3>¿Qué hará?</h3>
+        <p>Gestión centralizada de calendarios y rotaciones del equipo. Visibilidad clara para todos sin depender del chat de grupo — quién trabaja, cuándo, y con qué turno.</p>
+      </div>
+      <div class="modal-section">
+        <h3>Por definir</h3>
+        <ul>
+          <li>¿Cuántas empleadas y qué tipos de turno hay?</li>
+          <li>¿Se parte de cero o hay un sistema actual (Excel, app, papel)?</li>
+          <li>¿Se integra con alguna herramienta existente (Google Calendar, etc.)?</li>
+          <li>¿Las empleadas necesitan acceso de lectura o también de edición?</li>
+        </ul>
+      </div>
+      <div class="modal-section">
+        <h3>Visión</h3>
+        <div class="tool-pills mt-xs">
+          <span class="pill aspirational">Vista semanal/mensual por empleada</span>
+          <span class="pill aspirational">Gestión de vacaciones y ausencias</span>
+          <span class="pill aspirational">Notificaciones de cambio de turno</span>
+          <span class="pill aspirational">Exportable a Google Calendar</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span class="url-chip">Pendiente de definición</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Tareas -->
+<div class="modal-overlay" id="modal-tareas">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="tool-tag tag-idea"><span class="tag-dot"></span>Idea</span>
+      <div class="modal-tool-name">✅ Gestor de Tareas</div>
+      <button class="modal-close" onclick="closeModal('tareas')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <h3>¿Qué hará?</h3>
+        <p>Herramienta interna para asignar y hacer seguimiento de tareas del equipo. Todo lo que ahora se coordina por WhatsApp o de palabra, centralizado y con estado visible para todos.</p>
+      </div>
+      <div class="modal-section">
+        <h3>Por definir</h3>
+        <ul>
+          <li>¿Herramienta propia o integración con Notion/Trello/Asana?</li>
+          <li>¿Qué tipo de tareas se gestionan? (pedidos, limpieza, formación, admin...)</li>
+          <li>¿Necesitan acceso todas las empleadas o solo un subgrupo?</li>
+        </ul>
+      </div>
+      <div class="modal-section">
+        <h3>Visión</h3>
+        <div class="tool-pills mt-xs">
+          <span class="pill aspirational">Tablero Kanban por categoría</span>
+          <span class="pill aspirational">Asignación por empleada</span>
+          <span class="pill aspirational">Fechas límite y prioridades</span>
+          <span class="pill aspirational">Notificaciones de vencimiento</span>
+          <span class="pill aspirational">Historial de tareas completadas</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span class="url-chip">Pendiente de definición</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Promociones -->
+<div class="modal-overlay" id="modal-promociones">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="tool-tag tag-idea"><span class="tag-dot"></span>Idea</span>
+      <div class="modal-tool-name">🎯 Gestión de Promociones</div>
+      <button class="modal-close" onclick="closeModal('promociones')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <h3>¿Qué hará?</h3>
+        <p>Planificación, seguimiento y análisis del impacto de promociones y campañas de la farmacia. Mide en términos de ventas reales qué funciona y qué no, para tomar decisiones basadas en datos.</p>
+      </div>
+      <div class="modal-section">
+        <h3>Por definir</h3>
+        <ul>
+          <li>¿Qué tipos de promociones se hacen? (descuentos, bundles, campañas de laboratorio...)</li>
+          <li>¿Qué canales se usan? (escaparate, redes, email, mostrador...)</li>
+          <li>¿Qué métricas definen el éxito de una promoción?</li>
+        </ul>
+      </div>
+      <div class="modal-section">
+        <h3>Visión</h3>
+        <div class="tool-pills mt-xs">
+          <span class="pill aspirational">Calendario de campañas</span>
+          <span class="pill aspirational">Impacto en ventas antes/durante/después</span>
+          <span class="pill aspirational">Comparativa entre promociones</span>
+          <span class="pill aspirational">Alertas de stock en productos promocionados</span>
+          <span class="pill aspirational">Vinculado al Cuadro de Mando</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span class="url-chip">Pendiente de definición</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(id) {
+    const overlay = document.getElementById('modal-' + id);
+    if (overlay) {
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeModal(id) {
+    const overlay = document.getElementById('modal-' + id);
+    if (overlay) {
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+
+  // Close on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.open').forEach(o => {
+        o.classList.remove('open');
+        document.body.style.overflow = '';
+      });
+    }
+  });
+
+  // Smooth nav highlight on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.header-nav a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`.header-nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.4 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
