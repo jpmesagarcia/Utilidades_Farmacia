@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestor de Facturas · Farmacia del Globo Carretas</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<style>
+:root {
+  --teal: #2a8080;
+  --teal-d: #1e6060;
+  --teal-l: #3a9a9a;
+  --teal-pale: #eaf4f4;
+  --teal-muted: #c8e6e6;
+  --bg: #f5f9f9;
+  --surface: #ffffff;
+  --border: #d8eaea;
+  --text: #182e2e;
+  --muted: #6a9090;
+  --red: #c0392b;
+  --red-pale: #fdf1f0;
+  --amber: #b45309;
+  --amber-pale: #fef7ec;
+  --green: #1e7a5a;
+  --green-pale: #eaf5f0;
+  --radius: 10px;
+  --shadow: 0 1px 8px rgba(30,96,96,.08);
+  --shadow-md: 0 4px 20px rgba(30,96,96,.12);
+  --shadow-lg: 0 12px 40px rgba(30,96,96,.18);
+  --ft: 'Jost', sans-serif;
+  --fs: 'Cormorant Garamond', serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ft);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+
+/* ── HEADER ── */
+header{
+  background:var(--surface);
+  border-bottom:2px solid var(--teal);
+  padding:0 32px;
+  height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+  box-shadow:var(--shadow-md);
+}
+.logo{display:flex;align-items:center;gap:14px}
+.logo svg{width:40px;height:44px;flex-shrink:0}
+.logo-text h1{font-family:var(--fs);font-size:22px;font-weight:600;color:var(--teal-d);line-height:1}
+.logo-text p{font-size:11px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-top:2px}
+
+.header-right{display:flex;align-items:center;gap:12px}
+.mes-selector{
+  font-family:var(--ft);font-size:13px;font-weight:500;
+  border:1.5px solid var(--teal-muted);border-radius:8px;
+  padding:8px 14px;background:var(--teal-pale);color:var(--teal-d);
+  cursor:pointer;outline:none;
+}
+.mes-selector:focus{border-color:var(--teal)}
+
+/* ── BTNS ── */
+.btn{
+  font-family:var(--ft);font-size:13px;font-weight:500;
+  padding:9px 20px;border-radius:8px;border:none;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;
+  transition:all .15s;letter-spacing:.02em;white-space:nowrap;
+}
+.btn-primary{background:var(--teal);color:#fff}
+.btn-primary:hover{background:var(--teal-d)}
+.btn-outline{background:transparent;color:var(--teal-d);border:1.5px solid var(--teal-muted)}
+.btn-outline:hover{background:var(--teal-pale);border-color:var(--teal)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--teal-pale);color:var(--teal-d)}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#165c44}
+.btn-danger{background:var(--red-pale);color:var(--red);border:1px solid #f2c5c2}
+.btn-danger:hover{background:#fce8e6}
+.btn-sm{padding:6px 13px;font-size:12px}
+.btn-xs{padding:4px 9px;font-size:11px;border-radius:6px}
+
+/* ── KPI BAR ── */
+.kpi-bar{
+  padding:20px 32px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex;flex-direction:column;gap:16px;
+}
+.kpi-row{display:grid;gap:16px}
+.kpi-row-top{grid-template-columns:1fr 1fr 1fr 1fr}
+.kpi-row-provs{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+.kpi-row-top3{grid-template-columns:repeat(3,1fr)}
+.kpi{padding:14px 18px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface)}
+.kpi-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+.kpi-val{font-family:var(--fs);font-size:28px;font-weight:600;color:var(--teal-d);line-height:1.1}
+.kpi-val-big{font-family:var(--fs);font-size:36px;font-weight:600;color:var(--teal-d);line-height:1}
+.kpi-count{font-size:12px;color:var(--muted);margin-top:3px}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.kpi.danger{background:var(--red-pale);border-color:#f2c5c2}
+.kpi.danger .kpi-val,.kpi.danger .kpi-val-big{color:var(--red)}
+.kpi.warning{background:var(--amber-pale);border-color:#f8dfa8}
+.kpi.warning .kpi-val,.kpi.warning .kpi-val-big{color:var(--amber)}
+.kpi.ok{background:var(--green-pale);border-color:#aadcc6}
+.kpi.ok .kpi-val,.kpi.ok .kpi-val-big{color:var(--green)}
+.kpi-prov{padding:12px 16px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface)}
+.kpi-prov-name{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-prov-val{font-family:var(--fs);font-size:20px;font-weight:600;color:var(--teal-d);line-height:1}
+.kpi-prov-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.kpi-section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;padding-left:2px}
+
+/* ── CONTENT ── */
+.content{padding:24px 32px}
+
+/* ── FILTER ROW ── */
+.filter-row{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:12px 16px;
+  margin-bottom:16px;box-shadow:var(--shadow);
+}
+.filter-row select,
+.filter-row input{
+  font-family:var(--ft);font-size:13px;
+  border:1px solid var(--border);border-radius:7px;
+  padding:7px 12px;background:var(--bg);color:var(--text);
+  outline:none;transition:border .15s;
+}
+.filter-row select:focus,
+.filter-row input:focus{border-color:var(--teal);background:#fff}
+.filter-row input[type=text]{min-width:200px}
+.filter-sep{flex:1}
+.filter-label{font-size:12px;color:var(--muted);font-weight:500}
+
+/* ── TABLE ── */
+.table-wrap{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;
+}
+.table-head-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 16px;background:var(--teal-pale);border-bottom:1px solid var(--border);
+}
+.table-head-bar .count{font-size:12px;color:var(--muted);font-weight:500}
+.table-scroll{overflow-x:auto;max-height:calc(100vh - 360px);overflow-y:auto}
+
+table{width:100%;border-collapse:collapse}
+thead{position:sticky;top:0;z-index:10}
+thead th{
+  font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--muted);
+  padding:10px 14px;background:var(--teal-pale);
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;text-align:left;
+  cursor:pointer;user-select:none;
+}
+thead th:hover{color:var(--teal-d)}
+thead th.sort-asc::after{content:' ↑';color:var(--teal)}
+thead th.sort-desc::after{content:' ↓';color:var(--teal)}
+
+tbody tr{border-bottom:1px solid #eef5f5;transition:background .1s}
+tbody tr:hover{background:#f3fafa}
+tbody tr:last-child{border-bottom:none}
+tbody tr.pagada td:not(:last-child){opacity:.6}
+
+td{padding:9px 14px;font-size:13px;vertical-align:middle;white-space:nowrap}
+td.wrap{white-space:normal;max-width:220px}
+td.num{font-variant-numeric:tabular-nums}
+td.amount{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+td.amount.neg{color:var(--red)}
+td.amount.pos{color:var(--text)}
+.td-nro{font-size:11px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis}
+
+/* ── BADGES ── */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:20px;
+  font-size:11px;font-weight:600;letter-spacing:.03em;white-space:nowrap
+}
+.b-pagada{background:var(--green-pale);color:var(--green)}
+.b-pendiente{background:var(--amber-pale);color:var(--amber)}
+.b-vencida{background:var(--red-pale);color:var(--red)}
+.b-sinf{background:#f0f0f0;color:#888}
+.b-fact{background:var(--teal-pale);color:var(--teal-d)}
+.b-gasto{background:#f3eeff;color:#6b3fa0}
+
+/* ── ROW ACTIONS ── */
+.row-actions{display:flex;gap:4px}
+
+/* ── MODAL ── */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(10,28,28,.5);z-index:500;
+  align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(2px);
+}
+.overlay.open{display:flex}
+.modal{
+  background:var(--surface);border-radius:14px;
+  box-shadow:var(--shadow-lg);width:100%;
+  max-width:640px;max-height:92vh;overflow-y:auto;
+  animation:slide-up .2s ease;
+}
+@keyframes slide-up{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-sm{max-width:420px}
+.modal-header{
+  padding:24px 28px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.modal-header h2{font-family:var(--fs);font-size:24px;font-weight:600;color:var(--teal-d)}
+.modal-close{
+  background:none;border:none;font-size:24px;cursor:pointer;
+  color:var(--muted);padding:4px 8px;border-radius:6px;line-height:1;
+}
+.modal-close:hover{background:var(--teal-pale);color:var(--teal-d)}
+.modal-body{padding:22px 28px}
+.modal-footer{padding:14px 28px 24px;display:flex;gap:10px;justify-content:flex-end}
+
+/* ── IMPORT PANEL ── */
+.import-sources{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+.import-source{
+  border:2px solid var(--border);border-radius:10px;
+  padding:18px;cursor:pointer;transition:all .15s;text-align:center;
+  background:var(--bg);
+}
+.import-source:hover{border-color:var(--teal);background:var(--teal-pale)}
+.import-source.selected{border-color:var(--teal);background:var(--teal-pale)}
+.import-source .icon{font-size:28px;margin-bottom:8px}
+.import-source .name{font-weight:600;font-size:14px;color:var(--teal-d)}
+.import-source .desc{font-size:11px;color:var(--muted);margin-top:3px}
+.import-source.full{grid-column:1/-1}
+
+.import-zone{
+  border:2px dashed var(--teal-muted);border-radius:10px;
+  padding:28px;text-align:center;cursor:pointer;
+  transition:all .15s;background:var(--bg);margin-bottom:16px;
+}
+.import-zone:hover,.import-zone.drag{border-color:var(--teal);background:var(--teal-pale)}
+.import-zone .icon{font-size:32px;margin-bottom:8px}
+.import-zone p{font-size:13px;color:var(--muted)}
+.import-zone strong{color:var(--teal-d)}
+
+.preview-table-wrap{
+  border:1px solid var(--border);border-radius:8px;overflow:hidden;
+  max-height:280px;overflow-y:auto;margin-bottom:16px;
+}
+.preview-table-wrap table thead th{font-size:10px;padding:8px 10px}
+.preview-table-wrap table td{font-size:12px;padding:7px 10px}
+
+.textarea-import{
+  width:100%;font-family:var(--ft);font-size:12px;
+  border:1px solid var(--border);border-radius:8px;
+  padding:12px;background:var(--bg);color:var(--text);
+  resize:vertical;min-height:120px;outline:none;
+}
+.textarea-import:focus{border-color:var(--teal);background:#fff}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-grid .full{grid-column:1/-1}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.fg input,.fg select,.fg textarea{
+  font-family:var(--ft);font-size:13px;
+  border:1px solid var(--border);border-radius:7px;
+  padding:9px 12px;background:var(--bg);color:var(--text);
+  outline:none;transition:border .15s;
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--teal);background:#fff}
+.fg textarea{resize:vertical;min-height:56px}
+
+/* ── ALERT STRIP ── */
+.alert-strip{
+  display:flex;align-items:center;gap:10px;
+  background:var(--red-pale);border:1px solid #f2c5c2;
+  border-radius:8px;padding:10px 16px;margin-bottom:16px;
+  font-size:13px;color:var(--red);
+}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:52px 20px;color:var(--muted)}
+.empty .icon{font-size:40px;margin-bottom:12px}
+.empty p{font-size:14px}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:28px;right:28px;z-index:9999;
+  background:var(--teal-d);color:#fff;padding:12px 22px;
+  border-radius:10px;font-size:13px;font-weight:500;
+  box-shadow:var(--shadow-lg);
+  opacity:0;transform:translateY(10px);
+  transition:all .25s;pointer-events:none;
+}
+#toast.show{opacity:1;transform:translateY(0)}
+
+/* ── EXPORT PANEL ── */
+.export-panel{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:24px 28px;
+  max-width:480px;box-shadow:var(--shadow);
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--teal-muted);border-radius:3px}
+
+@media(max-width:900px){
+  .kpi-bar{grid-template-columns:repeat(2,1fr);padding:16px}
+  .content{padding:16px}
+  header{padding:0 16px}
+  .import-sources{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 60 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="30" cy="32" rx="24" ry="28" fill="#eaf4f4" stroke="#2a8080" stroke-width="1.5"/>
+      <path d="M8 28 Q30 36 52 28" stroke="#2a8080" stroke-width="1.5" fill="none"/>
+      <path d="M10 20 Q30 28 50 20" stroke="#3a9a9a" stroke-width="1.2" fill="none"/>
+      <path d="M7 35 Q30 44 53 35" stroke="#1e6060" stroke-width="1.2" fill="none"/>
+      <path d="M13 43 Q30 50 47 43" stroke="#2a8080" stroke-width="1" fill="none"/>
+      <rect x="24" y="57" width="12" height="6" rx="2" fill="#2a8080"/>
+      <path d="M26 63 L22 70 M34 63 L38 70" stroke="#2a8080" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <div class="logo-text">
+      <h1>Gestor de Facturas</h1>
+      <p>Farmacia del Globo Carretas</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <select class="mes-selector" id="sel-mes" onchange="onMesChange()">
+      <option value="1">Enero 2026</option>
+      <option value="2">Febrero 2026</option>
+      <option value="3">Marzo 2026</option>
+      <option value="4">Abril 2026</option>
+      <option value="5" selected>Mayo 2026</option>
+      <option value="6">Junio 2026</option>
+      <option value="7">Julio 2026</option>
+      <option value="8">Agosto 2026</option>
+      <option value="9">Septiembre 2026</option>
+      <option value="10">Octubre 2026</option>
+      <option value="11">Noviembre 2026</option>
+      <option value="12">Diciembre 2026</option>
+    </select>
+    <button class="btn btn-outline" onclick="openImport()">⬆ Importar</button>
+    <button class="btn btn-primary" onclick="openNueva()">＋ Nueva</button>
+    <button class="btn btn-ghost" onclick="openExport()">⬇ Exportar</button>
+  </div>
+</header>
+
+<!-- ══ KPI BAR ══ -->
+<div class="kpi-bar" id="kpi-bar"></div>
+
+<!-- ══ CONTENT ══ -->
+<div class="content">
+
+  <!-- filtros -->
+  <div class="filter-row">
+    <span class="filter-label">Tipo</span>
+    <select id="f-tipo" onchange="render()">
+      <option value="">Todos</option>
+      <option value="facturas">Facturas</option>
+      <option value="gastos">Gastos</option>
+    </select>
+    <span class="filter-label">Estado</span>
+    <select id="f-estado" onchange="render()">
+      <option value="">Todos</option>
+      <option value="pendiente">Pendiente</option>
+      <option value="vencida">Vencida</option>
+      <option value="pagada">Pagada</option>
+    </select>
+    <input type="text" id="f-q" placeholder="🔍 Proveedor o nº factura…" oninput="render()">
+    <div class="filter-sep"></div>
+    <button class="btn btn-ghost btn-sm" onclick="clearFilters()">✕ Limpiar</button>
+  </div>
+
+  <!-- toolbar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <span style="font-size:12px;color:var(--muted);font-weight:500" id="tbl-count">—</span>
+    <button class="btn btn-ghost btn-sm" onclick="exportFiltered()">&#x2B07; Excel vista actual</button>
+  </div>
+
+  <!-- SECCIÓN FACTURAS -->
+  <div id="section-facturas" class="table-wrap" style="margin-bottom:24px">
+    <div class="table-head-bar">
+      <span style="font-size:12px;font-weight:600;color:var(--teal-d)">&#x1F4C4; Facturas de proveedor</span>
+      <span class="count" id="count-facturas"></span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th onclick="setSort('proveedor')">Proveedor</th>
+          <th onclick="setSort('importe')" style="text-align:right">Importe</th>
+          <th onclick="setSort('nro_factura')">N&#xBA; Factura</th>
+          <th onclick="setSort('fecha_factura')">F. Factura</th>
+          <th onclick="setSort('fecha_vencimiento')">F. Vencim.</th>
+          <th onclick="setSort('estado')">Estado</th>
+          <th onclick="setSort('fecha_pago')">F. Pago</th>
+          <th>Comentario</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="body-facturas"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECCIÓN GASTOS -->
+  <div id="section-gastos" class="table-wrap">
+    <div class="table-head-bar">
+      <span style="font-size:12px;font-weight:600;color:#6b3fa0">&#x1F4BC; Gastos</span>
+      <span class="count" id="count-gastos"></span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th onclick="setSort('proveedor')">Proveedor</th>
+          <th onclick="setSort('importe')" style="text-align:right">Importe</th>
+          <th onclick="setSort('nro_factura')">N&#xBA; Factura</th>
+          <th onclick="setSort('fecha_factura')">F. Factura</th>
+          <th onclick="setSort('fecha_vencimiento')">F. Vencim.</th>
+          <th onclick="setSort('estado')">Estado</th>
+          <th onclick="setSort('fecha_pago')">F. Pago</th>
+          <th>Comentario</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="body-gastos"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════
+     MODAL: IMPORTAR
+════════════════════════════ -->
+<div class="overlay" id="ov-import" onclick="closeImport(event)">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-header">
+    <h2 id="imp-title">Importar Facturas</h2>
+    <button class="modal-close" onclick="closeImport()">×</button>
+  </div>
+  <div class="modal-body">
+
+    <!-- paso 1: selección fuente -->
+    <div id="imp-step1">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Selecciona la fuente de las facturas:</p>
+      <div class="import-sources">
+        <div class="import-source" onclick="selectSource('cofares', this)">
+          <div class="icon">📦</div>
+          <div class="name">Cofares</div>
+          <div class="desc">Excel del portal de clientes</div>
+        </div>
+        <div class="import-source" onclick="selectSource('cofas', this)">
+          <div class="icon">📦</div>
+          <div class="name">Cofas</div>
+          <div class="desc">Archivo XLS del portal</div>
+        </div>
+        <div class="import-source" onclick="selectSource('bidafarma', this)">
+          <div class="icon">✉️</div>
+          <div class="name">Bidafarma</div>
+          <div class="desc">Pegar texto del email</div>
+        </div>
+        <div class="import-source" onclick="selectSource('manual', this)">
+          <div class="icon">&#x270F;&#xFE0F;</div>
+          <div class="name">Entrada manual</div>
+          <div class="desc">Una factura a mano</div>
+        </div>
+        <div class="import-source" onclick="selectSource('json', this)"
+             style="grid-column:1/-1;border-color:#f8dfa8;background:var(--amber-pale)">
+          <div class="icon">&#x1F916;</div>
+          <div class="name" style="color:var(--amber)">Importar JSON generado por IA</div>
+          <div class="desc">Pega el JSON que Claude ha extra&#xED;do de tus PDFs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- paso 2a: subir archivo (cofares/cofas) -->
+    <div id="imp-step2-file" style="display:none">
+      <div class="import-zone" id="drop-zone"
+        onclick="document.getElementById('file-input').click()"
+        ondragover="onDragOver(event)" ondrop="onDrop(event)" ondragleave="onDragLeave(event)">
+        <div class="icon">📂</div>
+        <p><strong>Haz clic o arrastra</strong> el archivo aquí</p>
+        <p id="drop-hint" style="margin-top:4px;font-size:11px"></p>
+      </div>
+      <input type="file" id="file-input" accept=".xls,.xlsx" style="display:none" onchange="onFileSelect(event)">
+    </div>
+
+    <!-- paso 2b: pegar texto bidafarma -->
+    <div id="imp-step2-text" style="display:none">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Pega el contenido del email de Bidafarma:</p>
+      <textarea class="textarea-import" id="bida-text" placeholder="FACTURA FECHA VENCIMIENTO IMPORTE&#10;2404853305 30.04.2026 02.04.2026 18.548,19&#10;..."></textarea>
+      <button class="btn btn-outline" style="margin-top:10px" onclick="parseBidafarma()">Analizar texto →</button>
+    </div>
+
+    <!-- paso 2c: manual -->
+    <div id="imp-step2-manual" style="display:none">
+      <div class="form-grid">
+        <div class="fg">
+          <label>Tipo *</label>
+          <select id="mn-tipo"><option value="facturas">Factura proveedor</option><option value="gastos">Gasto</option></select>
+        </div>
+        <div class="fg">
+          <label>Mes *</label>
+          <select id="mn-mes"></select>
+        </div>
+        <div class="fg full">
+          <label>Proveedor *</label>
+          <input type="text" id="mn-prov" list="prov-dl" placeholder="Nombre del proveedor">
+          <datalist id="prov-dl"></datalist>
+        </div>
+        <div class="fg">
+          <label>Nº Factura</label>
+          <input type="text" id="mn-nro" placeholder="Ej: FAC-2026-001">
+        </div>
+        <div class="fg">
+          <label>Importe (€) *</label>
+          <input type="number" id="mn-imp" placeholder="0.00" step="0.01">
+        </div>
+        <div class="fg">
+          <label>Fecha Factura</label>
+          <input type="date" id="mn-ffac">
+        </div>
+        <div class="fg">
+          <label>Fecha Vencimiento</label>
+          <input type="date" id="mn-fvenc">
+        </div>
+        <div class="fg full">
+          <label>Comentario</label>
+          <textarea id="mn-com" placeholder="Notas…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- paso 2d: pegar JSON -->
+    <div id="imp-step2-json" style="display:none">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:6px">Pega el JSON generado por Claude a partir de los PDFs:</p>
+      <p style="font-size:11px;color:var(--amber);background:var(--amber-pale);border-radius:6px;padding:7px 12px;margin-bottom:10px">
+        &#x26A0;&#xFE0F; Revisa los campos <strong>FALTA DATO</strong> antes de confirmar.
+      </p>
+      <textarea class="textarea-import" id="json-text" style="min-height:160px;font-family:monospace;font-size:12px"
+        placeholder='[&#10;  {&#10;    "proveedor": "ISDIN S.A.",&#10;    "nro_factura": "914392132",&#10;    "fecha_factura": "2026-03-03",&#10;    "fecha_vencimiento": "2026-05-03",&#10;    "importe": 203.55,&#10;    "tipo": "facturas",&#10;    "comentario": ""&#10;  }&#10;]'></textarea>
+      <button class="btn btn-outline" style="margin-top:10px" onclick="parseJSON()">Analizar JSON &#x2192;</button>
+    </div>
+
+    <!-- paso 3: previsualización -->
+    <div id="imp-step3" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <p style="font-size:13px;font-weight:600;color:var(--teal-d)" id="preview-count"></p>
+        <button class="btn btn-ghost btn-sm" onclick="backToSource()">← Volver</button>
+      </div>
+      <div id="imp-warnings" style="margin-bottom:10px"></div>
+      <div class="preview-table-wrap">
+        <table>
+          <thead><tr>
+            <th>Proveedor</th><th>Nº Factura</th><th>F. Factura</th>
+            <th>F. Vencimiento</th><th style="text-align:right">Importe</th>
+          </tr></thead>
+          <tbody id="preview-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  <div class="modal-footer" id="imp-footer">
+    <button class="btn btn-ghost" onclick="closeImport()">Cancelar</button>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════
+     MODAL: PAGAR
+════════════════════════════ -->
+<div class="overlay" id="ov-pago" onclick="closePago(event)">
+<div class="modal modal-sm" onclick="event.stopPropagation()">
+  <div class="modal-header">
+    <h2>Registrar pago</h2>
+    <button class="modal-close" onclick="closePago()">×</button>
+  </div>
+  <div class="modal-body">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:18px" id="pago-desc"></p>
+    <div class="fg">
+      <label>Fecha de pago *</label>
+      <input type="date" id="pago-fecha">
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closePago()">Cancelar</button>
+    <button class="btn btn-success" onclick="confirmPago()">✓ Confirmar pago</button>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════
+     MODAL: EDITAR
+════════════════════════════ -->
+<div class="overlay" id="ov-edit" onclick="closeEdit(event)">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-header">
+    <h2 id="edit-title">Editar Factura</h2>
+    <button class="modal-close" onclick="closeEdit()">×</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-grid">
+      <div class="fg"><label>Tipo</label>
+        <select id="ed-tipo"><option value="facturas">Factura proveedor</option><option value="gastos">Gasto</option></select>
+      </div>
+      <div class="fg"><label>Mes</label><select id="ed-mes"></select></div>
+      <div class="fg full"><label>Proveedor *</label>
+        <input type="text" id="ed-prov" list="prov-dl2">
+        <datalist id="prov-dl2"></datalist>
+      </div>
+      <div class="fg"><label>Nº Factura</label><input type="text" id="ed-nro"></div>
+      <div class="fg"><label>Importe (€) *</label><input type="number" id="ed-imp" step="0.01"></div>
+      <div class="fg"><label>Fecha Factura</label><input type="date" id="ed-ffac"></div>
+      <div class="fg"><label>Fecha Vencimiento</label><input type="date" id="ed-fvenc"></div>
+      <div class="fg"><label>Fecha Pago</label><input type="date" id="ed-fpago"></div>
+      <div class="fg full"><label>Comentario</label><textarea id="ed-com"></textarea></div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeEdit()">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveEdit()">Guardar cambios</button>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════
+     MODAL: EXPORTAR
+════════════════════════════ -->
+<div class="overlay" id="ov-export" onclick="closeExport(event)">
+<div class="modal modal-sm" onclick="event.stopPropagation()">
+  <div class="modal-header">
+    <h2>Exportar para gestoría</h2>
+    <button class="modal-close" onclick="closeExport()">×</button>
+  </div>
+  <div class="modal-body">
+    <div class="fg" style="margin-bottom:16px">
+      <label>Periodo</label>
+      <select id="exp-mes">
+        <option value="0">&#x1F4C5; A&#xF1;o completo 2026 (una pesta&#xF1;a por mes)</option>
+      </select>
+    </div>
+    <div class="fg" style="margin-bottom:22px">
+      <label>Incluir</label>
+      <select id="exp-tipo">
+        <option value="">Facturas y gastos</option>
+        <option value="facturas">Solo facturas de proveedor</option>
+        <option value="gastos">Solo gastos</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="doExport()">
+      &#x2B07; Descargar Excel
+    </button>
+    <p style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.5">
+      Un mes: facturas y gastos en la misma hoja, separados por bloque.<br>
+      A&#xF1;o completo: una pesta&#xF1;a por mes.
+    </p>
+  </div>
+</div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ════ SEED DATA ════ -->
+<script>
+const SEED_DATA = [{"id":"imp-1-1","mes":1,"tipo":"facturas","proveedor":"0-NORMON","importe":100.94,"nro_factura":"2600014137","fecha_factura":"2026-01-17","fecha_vencimiento":"2026-04-17","fecha_pago":null,"comentario":""},{"id":"imp-1-2","mes":1,"tipo":"facturas","proveedor":"0-NORMON","importe":25.34,"nro_factura":"2600016686","fecha_factura":"2026-01-19","fecha_vencimiento":"2026-04-19","fecha_pago":null,"comentario":""},{"id":"imp-1-3","mes":1,"tipo":"facturas","proveedor":"0-NORMON","importe":237.32,"nro_factura":"2600028392","fecha_factura":"2026-01-28","fecha_vencimiento":"2026-04-28","fecha_pago":null,"comentario":""},{"id":"imp-1-4","mes":1,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":607.58,"nro_factura":"1260005090","fecha_factura":"2026-01-07","fecha_vencimiento":"2026-03-07","fecha_pago":null,"comentario":""},{"id":"imp-1-5","mes":1,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":-17.13,"nro_factura":"2260021605","fecha_factura":"2026-01-29","fecha_vencimiento":"2026-03-29","fecha_pago":null,"comentario":""},{"id":"imp-1-6","mes":1,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":-32.61,"nro_factura":"2260008564","fecha_factura":"2026-01-20","fecha_vencimiento":"2026-03-20","fecha_pago":null,"comentario":""},{"id":"imp-1-7","mes":1,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":-11.2,"nro_factura":"2260004132","fecha_factura":"2026-01-14","fecha_vencimiento":"2026-03-14","fecha_pago":null,"comentario":""},{"id":"imp-1-8","mes":1,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":-11.2,"nro_factura":"2260013221","fecha_factura":"2026-01-23","fecha_vencimiento":"2026-03-23","fecha_pago":null,"comentario":""},{"id":"imp-1-9","mes":1,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":11.2,"nro_factura":"1260033309","fecha_factura":"2026-01-22","fecha_vencimiento":"2026-03-14","fecha_pago":null,"comentario":""},{"id":"imp-1-10","mes":1,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":-7.91,"nro_factura":"2250130029","fecha_factura":"2025-12-22","fecha_vencimiento":"2026-02-22","fecha_pago":null,"comentario":""},{"id":"imp-1-11","mes":1,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":123.83,"nro_factura":"1260011726","fecha_factura":"2026-01-13","fecha_vencimiento":"2026-02-13","fecha_pago":null,"comentario":""},{"id":"imp-1-12","mes":1,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":58.4,"nro_factura":"1260043039","fecha_factura":"2026-01-26","fecha_vencimiento":"2026-03-26","fecha_pago":null,"comentario":""},{"id":"imp-1-13","mes":1,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":73.0,"nro_factura":"1260030915","fecha_factura":"2026-01-21","fecha_vencimiento":"2026-03-21","fecha_pago":null,"comentario":""},{"id":"imp-1-14","mes":1,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":-73.0,"nro_factura":"2260013832","fecha_factura":"2026-01-26","fecha_vencimiento":"2026-03-21","fecha_pago":null,"comentario":""},{"id":"imp-1-15","mes":1,"tipo":"facturas","proveedor":"ABOCA ESPANA S.A.","importe":1436.07,"nro_factura":"11003298","fecha_factura":"2026-01-27","fecha_vencimiento":"2026-04-27","fecha_pago":null,"comentario":""},{"id":"imp-1-16","mes":1,"tipo":"facturas","proveedor":"ACTIBIOS DISTR.SL","importe":27.39,"nro_factura":"VN26-002889","fecha_factura":"2026-01-15","fecha_vencimiento":"2026-01-15","fecha_pago":"2026-01-20","comentario":""},{"id":"imp-1-17","mes":1,"tipo":"facturas","proveedor":"ALMIRALL","importe":790.29,"nro_factura":"1026130983","fecha_factura":"2026-01-09","fecha_vencimiento":"2026-02-09","fecha_pago":"2026-02-10","comentario":""},{"id":"imp-1-18","mes":1,"tipo":"facturas","proveedor":"ALMIRALL","importe":361.96,"nro_factura":"1026133728","fecha_factura":"2026-01-21","fecha_vencimiento":"2026-02-21","fecha_pago":"2026-02-24","comentario":""},{"id":"imp-1-19","mes":1,"tipo":"facturas","proveedor":"ALNATUR","importe":78.0,"nro_factura":"APP/392","fecha_factura":"2026-01-29","fecha_vencimiento":"2026-01-29","fecha_pago":"2026-02-04","comentario":""},{"id":"imp-1-20","mes":1,"tipo":"facturas","proveedor":"BAYER","importe":1287.71,"nro_factura":"QF00005398","fecha_factura":"2026-01-23","fecha_vencimiento":"2026-03-24","fecha_pago":null,"comentario":""},{"id":"imp-1-21","mes":1,"tipo":"facturas","proveedor":"BEIERSDORF SDAD.","importe":1629.17,"nro_factura":"9744835939","fecha_factura":"2026-01-19","fecha_vencimiento":"2026-03-20","fecha_pago":null,"comentario":""},{"id":"imp-1-22","mes":1,"tipo":"facturas","proveedor":"BEIERSDORF SDAD.","importe":1642.36,"nro_factura":"243142702","fecha_factura":"2025-01-31","fecha_vencimiento":"2026-03-13","fecha_pago":null,"comentario":""},{"id":"imp-1-23","mes":1,"tipo":"facturas","proveedor":"BEIERSDORF SDAD.","importe":-1642.36,"nro_factura":"9744832554","fecha_factura":"2026-01-19","fecha_vencimiento":"2026-03-20","fecha_pago":null,"comentario":"ANULA FACTURA"},{"id":"imp-1-24","mes":1,"tipo":"facturas","proveedor":"BEIERSDORF SDAD.","importe":592.94,"nro_factura":"9744834704","fecha_factura":"2026-01-16","fecha_vencimiento":"2026-05-16","fecha_pago":null,"comentario":""},{"id":"imp-1-25","mes":1,"tipo":"facturas","proveedor":"BEIERSDORF SDAD.","importe":-713.0,"nro_factura":"1020038463","fecha_factura":"2026-01-20","fecha_vencimiento":null,"fecha_pago":null,"comentario":"PROMOCION"},{"id":"imp-1-26","mes":1,"tipo":"facturas","proveedor":"BETER","importe":213.1,"nro_factura":"10232339","fecha_factura":"2026-01-22","fecha_vencimiento":"2026-03-27","fecha_pago":null,"comentario":""},{"id":"imp-1-27","mes":1,"tipo":"facturas","proveedor":"CAUDALIE SAS","importe":893.04,"nro_factura":"ES0196500","fecha_factura":"2026-01-13","fecha_vencimiento":"2026-03-13","fecha_pago":null,"comentario":""},{"id":"imp-1-28","mes":1,"tipo":"facturas","proveedor":"CHIESI","importe":21.53,"nro_factura":"1026000703","fecha_factura":"2026-01-12","fecha_vencimiento":"2026-03-12","fecha_pago":null,"comentario":""},{"id":"imp-1-29","mes":1,"tipo":"facturas","proveedor":"DEITERS S.L.","importe":289.34,"nro_factura":"FV26-000034","fecha_factura":"2026-01-07","fecha_vencimiento":"2026-03-07","fecha_pago":null,"comentario":""},{"id":"imp-1-30","mes":1,"tipo":"facturas","proveedor":"DERMOFARM","importe":259.51,"nro_factura":"2001439993","fecha_factura":"2026-01-07","fecha_vencimiento":"2026-03-07","fecha_pago":null,"comentario":""},{"id":"imp-1-31","mes":1,"tipo":"facturas","proveedor":"ESTEVE PHARMACEUTICALS S. A.","importe":215.31,"nro_factura":"1050178942","fecha_factura":"2025-12-30","fecha_vencimiento":"2026-03-30","fecha_pago":null,"comentario":""},{"id":"imp-1-32","mes":1,"tipo":"facturas","proveedor":"ESTEVE PHARMACEUTICALS S. A.","importe":243.41,"nro_factura":"1060100887","fecha_factura":"2026-01-09","fecha_vencimiento":"2026-04-09","fecha_pago":null,"comentario":""},{"id":"imp-1-33","mes":1,"tipo":"facturas","proveedor":"ESTEVE PHARMACEUTICALS S. A.","importe":311.75,"nro_factura":"1060104339","fecha_factura":"2026-01-27","fecha_vencimiento":"2026-04-27","fecha_pago":null,"comentario":""},{"id":"imp-1-34","mes":1,"tipo":"facturas","proveedor":"EUROLAB FARMA SAL","importe":168.27,"nro_factura":"FV2600076","fecha_factura":"2026-01-08","fecha_vencimiento":"2026-03-09","fecha_pago":null,"comentario":""},{"id":"imp-1-35","mes":1,"tipo":"facturas","proveedor":"EUROLAB FARMA SAL","importe":122.85,"nro_factura":"FV26001475","fecha_factura":"2026-01-28","fecha_vencimiento":"2026-03-29","fecha_pago":null,"comentario":""},{"id":"imp-1-36","mes":1,"tipo":"facturas","proveedor":"FERRER INTER.S.A","importe":459.96,"nro_factura":"13245571","fecha_factura":"2025-12-31","fecha_vencimiento":"2026-02-28","fecha_pago":null,"comentario":""},{"id":"imp-1-37","mes":1,"tipo":"facturas","proveedor":"GSK","importe":388.77,"nro_factura":"6445417807-8","fecha_factura":"2026-01-07","fecha_vencimiento":"2026-03-08","fecha_pago":null,"comentario":""},{"id":"imp-1-38","mes":1,"tipo":"facturas","proveedor":"GSK","importe":124.83,"nro_factura":"6445417808","fecha_factura":"2026-01-07","fecha_vencimiento":"2026-03-08","fecha_pago":null,"comentario":""},{"id":"imp-1-39","mes":1,"tipo":"facturas","proveedor":"GSK","importe":460.35,"nro_factura":"6445425603","fecha_factura":"2026-01-15","fecha_vencimiento":"2026-03-01","fecha_pago":null,"comentario":""},{"id":"imp-1-40","mes":1,"tipo":"facturas","proveedor":"GSK","importe":1030.34,"nro_factura":"6445438071","fecha_factura":"2026-01-28","fecha_vencimiento":"2026-03-29","fecha_pago":null,"comentario":""},{"id":"imp-1-41","mes":1,"tipo":"facturas","proveedor":"IND.FARM.CANTABR","importe":234.98,"nro_factura":"2600321","fecha_factura":"2026-01-07","fecha_vencimiento":"2026-05-07","fecha_pago":null,"comentario":""},{"id":"imp-1-42","mes":1,"tipo":"facturas","proveedor":"IND.FARM.CANTABR","importe":839.82,"nro_factura":"26005826","fecha_factura":"2026-01-23","fecha_vencimiento":"2026-05-23","fecha_pago":null,"comentario":""},{"id":"imp-1-43","mes":1,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":657.65,"nro_factura":"914335343","fecha_factura":"2026-01-09","fecha_vencimiento":"2026-03-10","fecha_pago":null,"comentario":""},{"id":"imp-1-44","mes":1,"tipo":"facturas","proveedor":"ITALFARMACO","importe":474.98,"nro_factura":"1651399","fecha_factura":"2026-01-14","fecha_vencimiento":"2026-03-14","fecha_pago":null,"comentario":""},{"id":"imp-1-45","mes":1,"tipo":"facturas","proveedor":"JOHNSON-JOHNSON","importe":710.7,"nro_factura":"5554169002","fecha_factura":"2026-01-12","fecha_vencimiento":"2026-03-13","fecha_pago":null,"comentario":""},{"id":"imp-1-46","mes":1,"tipo":"facturas","proveedor":"KARO","importe":114.05,"nro_factura":"81027525","fecha_factura":"2026-01-27","fecha_vencimiento":"2026-03-28","fecha_pago":null,"comentario":""},{"id":"imp-1-47","mes":1,"tipo":"facturas","proveedor":"KERN","importe":728.42,"nro_factura":"9000557293","fecha_factura":"2026-01-21","fecha_vencimiento":"2026-02-21","fecha_pago":"2026-02-24","comentario":""},{"id":"imp-1-48","mes":1,"tipo":"facturas","proveedor":"KERN","importe":26.44,"nro_factura":"9000556748","fecha_factura":"2026-01-20","fecha_vencimiento":"2026-02-20","fecha_pago":"2026-02-21","comentario":""},{"id":"imp-1-49","mes":1,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":782.81,"nro_factura":"3401002527","fecha_factura":"2026-01-05","fecha_vencimiento":"2026-03-08","fecha_pago":null,"comentario":""},{"id":"imp-1-50","mes":1,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":42.71,"nro_factura":"3401008618","fecha_factura":"2026-01-12","fecha_vencimiento":"2026-09-07","fecha_pago":null,"comentario":""},{"id":"imp-1-51","mes":1,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":637.14,"nro_factura":"3401008619","fecha_factura":"2026-01-12","fecha_vencimiento":"2026-03-14","fecha_pago":null,"comentario":""},{"id":"imp-1-52","mes":1,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":-16.73,"nro_factura":"3460140750","fecha_factura":"2026-01-13","fecha_vencimiento":"2026-01-13","fecha_pago":"2026-01-21","comentario":"PRODUCTO"},{"id":"imp-1-53","mes":1,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":628.4,"nro_factura":"3401019616","fecha_factura":"2026-01-26","fecha_vencimiento":"2026-03-28","fecha_pago":null,"comentario":""},{"id":"imp-1-54","mes":1,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":-281.28,"nro_factura":"3470072489","fecha_factura":"2026-01-27","fecha_vencimiento":"2026-03-08","fecha_pago":null,"comentario":"PROMO"},{"id":"imp-1-55","mes":1,"tipo":"facturas","proveedor":"LOGISTA PHARMA","importe":2341.61,"nro_factura":"5011503483","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-04-01","fecha_pago":null,"comentario":""},{"id":"imp-1-56","mes":1,"tipo":"facturas","proveedor":"LOGISTA PHARMA (PROCTER-GAMBLE)","importe":2307.04,"nro_factura":"5011491569","fecha_factura":"2026-01-19","fecha_vencimiento":"2026-03-20","fecha_pago":null,"comentario":""},{"id":"imp-1-57","mes":1,"tipo":"facturas","proveedor":"MEDI BAYREUTH ESP","importe":127.15,"nro_factura":"26003861","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-03-30","fecha_pago":null,"comentario":""},{"id":"imp-1-58","mes":1,"tipo":"facturas","proveedor":"MOGAR","importe":255.71,"nro_factura":"183094","fecha_factura":"2026-01-07","fecha_vencimiento":"2026-03-07","fecha_pago":null,"comentario":""},{"id":"imp-1-59","mes":1,"tipo":"facturas","proveedor":"NAOS SKIN CARE SPAIN S.L.","importe":923.09,"nro_factura":"200817268","fecha_factura":"2026-01-15","fecha_vencimiento":"2026-03-16","fecha_pago":null,"comentario":""},{"id":"imp-1-60","mes":1,"tipo":"facturas","proveedor":"NAOS SKIN CARE SPAIN S.L.","importe":-67.62,"nro_factura":"A200540175","fecha_factura":"2026-01-15","fecha_vencimiento":"2026-03-15","fecha_pago":null,"comentario":""},{"id":"imp-1-61","mes":1,"tipo":"facturas","proveedor":"NUTRICION Y SANTE BIMANAN","importe":445.52,"nro_factura":"920769170","fecha_factura":"2026-01-08","fecha_vencimiento":"2026-03-09","fecha_pago":null,"comentario":"PRODUCTO"},{"id":"imp-1-62","mes":1,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":4631.5,"nro_factura":"SIF1388095","fecha_factura":"2026-01-22","fecha_vencimiento":"2026-08-20","fecha_pago":null,"comentario":""},{"id":"imp-1-63","mes":1,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":525.21,"nro_factura":"SIF1393601","fecha_factura":"2026-01-29","fecha_vencimiento":"2026-03-30","fecha_pago":null,"comentario":""},{"id":"imp-1-64","mes":1,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":-17.91,"nro_factura":"scn0255958","fecha_factura":"2026-01-07","fecha_vencimiento":"2026-03-08","fecha_pago":null,"comentario":"PROMO"},{"id":"imp-1-65","mes":1,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":-94.91,"nro_factura":"SCN0256306","fecha_factura":"2026-01-07","fecha_vencimiento":"2026-03-08","fecha_pago":null,"comentario":"PROMO"},{"id":"imp-1-66","mes":1,"tipo":"facturas","proveedor":"PRANAROM","importe":353.22,"nro_factura":"FV25051082","fecha_factura":"2025-12-24","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-1-67","mes":1,"tipo":"facturas","proveedor":"PRIM","importe":253.69,"nro_factura":"100751376","fecha_factura":"2026-01-09","fecha_vencimiento":"2026-03-10","fecha_pago":null,"comentario":""},{"id":"imp-1-68","mes":1,"tipo":"facturas","proveedor":"PRIM","importe":14.22,"nro_factura":"100763985","fecha_factura":"2026-01-26","fecha_vencimiento":"2026-03-27","fecha_pago":null,"comentario":""},{"id":"imp-1-69","mes":1,"tipo":"facturas","proveedor":"PRIM","importe":271.85,"nro_factura":"100765507","fecha_factura":"2026-01-27","fecha_vencimiento":"2026-03-28","fecha_pago":null,"comentario":""},{"id":"imp-1-70","mes":1,"tipo":"facturas","proveedor":"PRIM","importe":14.63,"nro_factura":"100766618","fecha_factura":"2026-01-28","fecha_vencimiento":"2026-03-29","fecha_pago":null,"comentario":""},{"id":"imp-1-71","mes":1,"tipo":"facturas","proveedor":"QUIES","importe":699.57,"nro_factura":"2600156","fecha_factura":"2026-01-20","fecha_vencimiento":"2026-03-21","fecha_pago":null,"comentario":""},{"id":"imp-1-72","mes":1,"tipo":"facturas","proveedor":"REVA","importe":-209.24,"nro_factura":"026A000077","fecha_factura":"2026-01-20","fecha_vencimiento":"2026-01-20","fecha_pago":null,"comentario":"PRODUCTO"},{"id":"imp-1-73","mes":1,"tipo":"facturas","proveedor":"SALVAT","importe":178.24,"nro_factura":"1900738538","fecha_factura":"2026-01-12","fecha_vencimiento":"2026-02-26","fecha_pago":"2026-02-27","comentario":""},{"id":"imp-1-74","mes":1,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":397.09,"nro_factura":"7061392161","fecha_factura":"2026-01-19","fecha_vencimiento":"2026-05-19","fecha_pago":null,"comentario":""},{"id":"imp-1-75","mes":1,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":189.64,"nro_factura":"7061392162","fecha_factura":"2026-01-19","fecha_vencimiento":"2026-03-19","fecha_pago":null,"comentario":""},{"id":"imp-1-76","mes":1,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":119.82,"nro_factura":"7061394834","fecha_factura":"2026-01-28","fecha_vencimiento":"2026-03-28","fecha_pago":null,"comentario":""},{"id":"imp-1-77","mes":1,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":273.43,"nro_factura":"7061394835","fecha_factura":"2026-01-28","fecha_vencimiento":"2026-05-28","fecha_pago":null,"comentario":""},{"id":"imp-1-78","mes":1,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":232.29,"nro_factura":"7061394836","fecha_factura":"2026-01-28","fecha_vencimiento":"2026-03-28","fecha_pago":null,"comentario":""},{"id":"imp-1-79","mes":1,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":41.24,"nro_factura":"7061394837","fecha_factura":"2026-01-28","fecha_vencimiento":"2026-01-28","fecha_pago":null,"comentario":""},{"id":"imp-1-80","mes":1,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":-5.83,"nro_factura":"7068046088","fecha_factura":"2026-01-05","fecha_vencimiento":"2026-03-06","fecha_pago":null,"comentario":"producto"},{"id":"imp-1-81","mes":1,"tipo":"facturas","proveedor":"SUAVINEX,S.A.","importe":29.52,"nro_factura":"702602623","fecha_factura":"2026-01-22","fecha_vencimiento":"2026-03-22","fecha_pago":null,"comentario":""},{"id":"imp-1-82","mes":1,"tipo":"facturas","proveedor":"SUAVINEX,S.A.","importe":31.55,"nro_factura":"702603798","fecha_factura":"2026-01-28","fecha_vencimiento":"2026-03-28","fecha_pago":null,"comentario":""},{"id":"imp-1-83","mes":1,"tipo":"facturas","proveedor":"THEA","importe":392.89,"nro_factura":"...01797","fecha_factura":"2026-01-27","fecha_vencimiento":"2026-03-28","fecha_pago":null,"comentario":""},{"id":"imp-1-84","mes":1,"tipo":"facturas","proveedor":"URGO","importe":288.86,"nro_factura":"47757653","fecha_factura":"2026-01-13","fecha_vencimiento":"2026-03-17","fecha_pago":null,"comentario":""},{"id":"imp-1-85","mes":1,"tipo":"facturas","proveedor":"URIACH (PVP","importe":651.84,"nro_factura":"7100737667","fecha_factura":"2026-01-26","fecha_vencimiento":"2026-03-27","fecha_pago":null,"comentario":""},{"id":"imp-1-86","mes":1,"tipo":"facturas","proveedor":"URIACH (PVP","importe":618.32,"nro_factura":"7100737668","fecha_factura":"2026-01-26","fecha_vencimiento":"2026-03-27","fecha_pago":null,"comentario":""},{"id":"imp-1-87","mes":1,"tipo":"facturas","proveedor":"VITRY","importe":458.7,"nro_factura":"1282457","fecha_factura":"2026-01-13","fecha_vencimiento":"2026-02-12","fecha_pago":"2026-02-13","comentario":""},{"id":"imp-1-88","mes":1,"tipo":"facturas","proveedor":"VITRY","importe":240.92,"nro_factura":"1284333","fecha_factura":"2026-01-28","fecha_vencimiento":"2026-02-27","fecha_pago":"2026-02-28","comentario":""},{"id":"imp-1-89","mes":1,"tipo":"facturas","proveedor":"ZAMBON","importe":628.4,"nro_factura":"1026004230","fecha_factura":"2026-01-30","fecha_vencimiento":"2026-03-30","fecha_pago":null,"comentario":""},{"id":"imp-1-90","mes":1,"tipo":"facturas","proveedor":"BidaFARMA","importe":16097.76,"nro_factura":"2404773641","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-01-02","fecha_pago":null,"comentario":""},{"id":"imp-1-91","mes":1,"tipo":"facturas","proveedor":"BidaFARMA","importe":231.43,"nro_factura":"2404773641","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-02-28","fecha_pago":null,"comentario":""},{"id":"imp-1-92","mes":1,"tipo":"facturas","proveedor":"BidaFARMA","importe":932.31,"nro_factura":"2404773642","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-05-30","fecha_pago":null,"comentario":""},{"id":"imp-1-93","mes":1,"tipo":"facturas","proveedor":"BidaFARMA","importe":368.07,"nro_factura":"2404773642","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-06-30","fecha_pago":null,"comentario":""},{"id":"imp-1-94","mes":1,"tipo":"facturas","proveedor":"COFAS","importe":963.0,"nro_factura":"90634277","fecha_factura":"2026-01-15","fecha_vencimiento":"2026-02-15","fecha_pago":"2026-02-17","comentario":""},{"id":"imp-1-95","mes":1,"tipo":"facturas","proveedor":"COFAS","importe":761.01,"nro_factura":"90637586","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-02-15","fecha_pago":"2026-02-17","comentario":""},{"id":"imp-1-96","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":1626.98,"nro_factura":"114810302","fecha_factura":"2026-01-10","fecha_vencimiento":"2026-05-25","fecha_pago":null,"comentario":""},{"id":"imp-1-97","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":73.5,"nro_factura":"114810303","fecha_factura":"2026-01-10","fecha_vencimiento":"2026-07-25","fecha_pago":null,"comentario":""},{"id":"imp-1-98","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":1368.98,"nro_factura":"114810304","fecha_factura":"2026-01-10","fecha_vencimiento":"2026-02-25","fecha_pago":null,"comentario":""},{"id":"imp-1-99","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":121.24,"nro_factura":"114810305","fecha_factura":"2026-01-10","fecha_vencimiento":"2026-08-25","fecha_pago":null,"comentario":""},{"id":"imp-1-100","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":0.0,"nro_factura":"151450644","fecha_factura":"2026-01-10","fecha_vencimiento":"2026-08-25","fecha_pago":null,"comentario":""},{"id":"imp-1-101","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":2258.35,"nro_factura":"114833852","fecha_factura":"2026-01-20","fecha_vencimiento":"2026-05-25","fecha_pago":null,"comentario":""},{"id":"imp-1-102","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":2336.34,"nro_factura":"114833853","fecha_factura":"2026-01-20","fecha_vencimiento":"2026-02-25","fecha_pago":null,"comentario":""},{"id":"imp-1-103","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":84.85,"nro_factura":"114833854","fecha_factura":"2026-01-20","fecha_vencimiento":"2026-08-25","fecha_pago":null,"comentario":""},{"id":"imp-1-104","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":0.0,"nro_factura":"151451812","fecha_factura":"2026-01-20","fecha_vencimiento":"2026-08-25","fecha_pago":null,"comentario":""},{"id":"imp-1-105","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":3735.07,"nro_factura":"114857594","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-02-25","fecha_pago":null,"comentario":""},{"id":"imp-1-106","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":856.84,"nro_factura":"114857595","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-07-25","fecha_pago":null,"comentario":""},{"id":"imp-1-107","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":3224.46,"nro_factura":"114857596","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-05-25","fecha_pago":null,"comentario":""},{"id":"imp-1-108","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":130.3,"nro_factura":"114857597","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-06-25","fecha_pago":null,"comentario":""},{"id":"imp-1-109","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":5.07,"nro_factura":"114857598","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-08-25","fecha_pago":null,"comentario":""},{"id":"imp-1-110","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":11.66,"nro_factura":"114881842","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-02-25","fecha_pago":null,"comentario":""},{"id":"imp-1-111","mes":1,"tipo":"facturas","proveedor":"COFARES","importe":5.82,"nro_factura":"151458965","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-02-25","fecha_pago":null,"comentario":""},{"id":"imp-1-112","mes":1,"tipo":"gastos","proveedor":"SISFARMA","importe":265.6,"nro_factura":"26F00137","fecha_factura":"2026-01-02","fecha_vencimiento":null,"fecha_pago":"2026-01-07","comentario":""},{"id":"imp-1-113","mes":1,"tipo":"gastos","proveedor":"TELEFONICA","importe":179.14,"nro_factura":"TA7jr0072846","fecha_factura":"2026-01-19","fecha_vencimiento":null,"fecha_pago":"2026-01-20","comentario":""},{"id":"imp-1-114","mes":1,"tipo":"gastos","proveedor":"BD","importe":529.74,"nro_factura":"26/P03511","fecha_factura":"2026-01-01","fecha_vencimiento":"2026-01-01","fecha_pago":"2026-01-07","comentario":""},{"id":"imp-1-115","mes":1,"tipo":"gastos","proveedor":"NATURGY","importe":883.74,"nro_factura":"FE26390003484962","fecha_factura":"2026-01-23","fecha_vencimiento":"2026-01-30","fecha_pago":"2026-02-03","comentario":""},{"id":"imp-1-116","mes":1,"tipo":"gastos","proveedor":"ANA ROCIO MUÑOS RODRIGUEZ","importe":359.37,"nro_factura":"002/2026","fecha_factura":"2026-01-30","fecha_vencimiento":null,"fecha_pago":"2026-02-02","comentario":""},{"id":"imp-1-117","mes":1,"tipo":"gastos","proveedor":"PEREZ LLORCA","importe":885.37,"nro_factura":"26/0428","fecha_factura":"2026-01-30","fecha_vencimiento":"2026-03-02","fecha_pago":null,"comentario":""},{"id":"imp-1-118","mes":1,"tipo":"gastos","proveedor":"CONSOFT","importe":145.2,"nro_factura":"F-00169/26","fecha_factura":"2026-01-15","fecha_vencimiento":null,"fecha_pago":"2026-01-29","comentario":""},{"id":"imp-1-119","mes":1,"tipo":"gastos","proveedor":"FARMASOFT","importe":120.07,"nro_factura":"INV/2026/000176","fecha_factura":"2026-01-13","fecha_vencimiento":"2026-02-02","fecha_pago":"2026-02-07","comentario":""},{"id":"imp-1-120","mes":1,"tipo":"gastos","proveedor":"LUDA","importe":14.52,"nro_factura":"SH19945/25","fecha_factura":"2025-12-31","fecha_vencimiento":null,"fecha_pago":"2026-01-09","comentario":""},{"id":"imp-1-121","mes":1,"tipo":"gastos","proveedor":"LUDA","importe":30.54,"nro_factura":"GL66/26","fecha_factura":"2026-01-30","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-1-122","mes":1,"tipo":"gastos","proveedor":"MEDIFORM","importe":156.09,"nro_factura":"A 26000094","fecha_factura":"2026-01-01","fecha_vencimiento":"2026-01-01","fecha_pago":"2026-01-28","comentario":""},{"id":"imp-1-123","mes":1,"tipo":"gastos","proveedor":"MEDIFORM","importe":665.5,"nro_factura":"A 14","fecha_factura":"2026-01-02","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-1-124","mes":1,"tipo":"gastos","proveedor":"REGAS","importe":140.38,"nro_factura":"001/26","fecha_factura":"2026-01-07","fecha_vencimiento":null,"fecha_pago":"2026-02-02","comentario":""},{"id":"imp-2-1","mes":2,"tipo":"facturas","proveedor":"0-NORMON","importe":265.44,"nro_factura":"2600035479","fecha_factura":"2026-02-04","fecha_vencimiento":"2026-05-05","fecha_pago":null,"comentario":""},{"id":"imp-2-2","mes":2,"tipo":"facturas","proveedor":"0-NORMON","importe":18.31,"nro_factura":"260035480","fecha_factura":"2026-02-04","fecha_vencimiento":"2026-04-20","fecha_pago":null,"comentario":""},{"id":"imp-2-3","mes":2,"tipo":"facturas","proveedor":"0-NORMON","importe":56.43,"nro_factura":"260045953","fecha_factura":"2026-02-12","fecha_vencimiento":"2026-07-12","fecha_pago":null,"comentario":""},{"id":"imp-2-4","mes":2,"tipo":"facturas","proveedor":"0-NORMON","importe":-21.9,"nro_factura":"2680001229","fecha_factura":"2026-02-04","fecha_vencimiento":null,"fecha_pago":null,"comentario":"RECTIFICATIVA"},{"id":"imp-2-5","mes":2,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":-6.62,"nro_factura":"2260032325","fecha_factura":"2026-02-13","fecha_vencimiento":"2026-04-13","fecha_pago":null,"comentario":""},{"id":"imp-2-6","mes":2,"tipo":"facturas","proveedor":"ABOCA ESPANA S.A.","importe":45.65,"nro_factura":"11005488","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-04-30","fecha_pago":null,"comentario":""},{"id":"imp-2-7","mes":2,"tipo":"facturas","proveedor":"ABOCA ESPANA S.A.","importe":580.93,"nro_factura":"11008581","fecha_factura":"2026-02-11","fecha_vencimiento":"2026-05-11","fecha_pago":null,"comentario":""},{"id":"imp-2-8","mes":2,"tipo":"facturas","proveedor":"ALMIRALL","importe":559.82,"nro_factura":"1026141044","fecha_factura":"2026-02-12","fecha_vencimiento":"2026-03-12","fecha_pago":null,"comentario":""},{"id":"imp-2-9","mes":2,"tipo":"facturas","proveedor":"ALMIRALL","importe":505.09,"nro_factura":"1026141045","fecha_factura":"2026-02-12","fecha_vencimiento":"2026-06-12","fecha_pago":null,"comentario":""},{"id":"imp-2-10","mes":2,"tipo":"facturas","proveedor":"BAYER","importe":2747.41,"nro_factura":"QF00008558","fecha_factura":"2026-02-03","fecha_vencimiento":"2026-04-04","fecha_pago":null,"comentario":""},{"id":"imp-2-11","mes":2,"tipo":"facturas","proveedor":"BEIERSDORF SDAD.","importe":1887.18,"nro_factura":"9744848934","fecha_factura":"2026-02-10","fecha_vencimiento":"2026-09-01","fecha_pago":null,"comentario":""},{"id":"imp-2-12","mes":2,"tipo":"facturas","proveedor":"BEIERSDORF SDAD.","importe":303.26,"nro_factura":"9744852314","fecha_factura":"2026-02-16","fecha_vencimiento":"2026-04-17","fecha_pago":null,"comentario":""},{"id":"imp-2-13","mes":2,"tipo":"facturas","proveedor":"BEIERSDORF SDAD.","importe":50.73,"nro_factura":"9744859403","fecha_factura":"2026-02-24","fecha_vencimiento":"2026-04-25","fecha_pago":null,"comentario":""},{"id":"imp-2-14","mes":2,"tipo":"facturas","proveedor":"BEIERSDORF SDAD.","importe":311.54,"nro_factura":"9744862847","fecha_factura":"2026-02-27","fecha_vencimiento":"2026-04-28","fecha_pago":null,"comentario":""},{"id":"imp-2-15","mes":2,"tipo":"facturas","proveedor":"BETER","importe":223.43,"nro_factura":"1023449","fecha_factura":"2026-02-23","fecha_vencimiento":"2026-04-24","fecha_pago":null,"comentario":""},{"id":"imp-2-16","mes":2,"tipo":"facturas","proveedor":"Bidafarma","importe":7.75,"nro_factura":"2404803924","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-02-02","fecha_pago":null,"comentario":""},{"id":"imp-2-17","mes":2,"tipo":"facturas","proveedor":"Bidafarma","importe":520.86,"nro_factura":"2404803923","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-06-30","fecha_pago":null,"comentario":""},{"id":"imp-2-18","mes":2,"tipo":"facturas","proveedor":"Bidafarma","importe":84.96,"nro_factura":"2404803923","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-07-30","fecha_pago":null,"comentario":""},{"id":"imp-2-19","mes":2,"tipo":"facturas","proveedor":"Bidafarma","importe":15431.93,"nro_factura":"2404803922","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-02-02","fecha_pago":null,"comentario":""},{"id":"imp-2-20","mes":2,"tipo":"facturas","proveedor":"Bidafarma","importe":805.68,"nro_factura":"2404803922","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-03-30","fecha_pago":null,"comentario":""},{"id":"imp-2-21","mes":2,"tipo":"facturas","proveedor":"Bidafarma","importe":250.19,"nro_factura":"2404803922","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-04-30","fecha_pago":null,"comentario":""},{"id":"imp-2-22","mes":2,"tipo":"facturas","proveedor":"CAUDALIE SAS","importe":464.46,"nro_factura":"ES0198651","fecha_factura":"2026-02-05","fecha_vencimiento":"2026-04-05","fecha_pago":null,"comentario":""},{"id":"imp-2-23","mes":2,"tipo":"facturas","proveedor":"CAUDALIE SAS","importe":1510.8,"nro_factura":"ES0199338","fecha_factura":"2026-02-16","fecha_vencimiento":"2026-08-16","fecha_pago":null,"comentario":""},{"id":"imp-2-24","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":562.2,"nro_factura":"114905376","fecha_factura":"2026-02-10","fecha_vencimiento":"2026-06-25","fecha_pago":null,"comentario":""},{"id":"imp-2-25","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":2947.57,"nro_factura":"114905377","fecha_factura":"2026-02-10","fecha_vencimiento":"2026-03-25","fecha_pago":null,"comentario":""},{"id":"imp-2-26","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":140.72,"nro_factura":"114905378","fecha_factura":"2026-02-10","fecha_vencimiento":"2026-08-25","fecha_pago":null,"comentario":""},{"id":"imp-2-27","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":82.05,"nro_factura":"114905379","fecha_factura":"2026-02-10","fecha_vencimiento":"2026-07-25","fecha_pago":null,"comentario":""},{"id":"imp-2-28","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":92.41,"nro_factura":"114905380","fecha_factura":"2026-02-10","fecha_vencimiento":"2026-09-25","fecha_pago":null,"comentario":""},{"id":"imp-2-29","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":1851.34,"nro_factura":"114927908","fecha_factura":"2026-02-20","fecha_vencimiento":"2026-03-25","fecha_pago":null,"comentario":""},{"id":"imp-2-30","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":1861.0,"nro_factura":"114927909","fecha_factura":"2026-02-20","fecha_vencimiento":"2026-06-25","fecha_pago":null,"comentario":""},{"id":"imp-2-31","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":572.88,"nro_factura":"114927910","fecha_factura":"2026-02-20","fecha_vencimiento":"2026-08-25","fecha_pago":null,"comentario":""},{"id":"imp-2-32","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":35.86,"nro_factura":"114927911","fecha_factura":"2026-02-20","fecha_vencimiento":"2026-07-25","fecha_pago":null,"comentario":""},{"id":"imp-2-33","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":8.88,"nro_factura":"114927912","fecha_factura":"2026-02-20","fecha_vencimiento":"2026-09-25","fecha_pago":null,"comentario":""},{"id":"imp-2-34","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":1922.56,"nro_factura":"114953189","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-03-25","fecha_pago":null,"comentario":""},{"id":"imp-2-35","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":1080.6,"nro_factura":"114953190","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-06-25","fecha_pago":null,"comentario":""},{"id":"imp-2-36","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":213.43,"nro_factura":"114953191","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-08-25","fecha_pago":null,"comentario":""},{"id":"imp-2-37","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":145.84,"nro_factura":"114953192","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-07-25","fecha_pago":null,"comentario":""},{"id":"imp-2-38","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":41.52,"nro_factura":"151474141","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-03-25","fecha_pago":null,"comentario":""},{"id":"imp-2-39","mes":2,"tipo":"facturas","proveedor":"COFARES","importe":-10.49,"nro_factura":"151474183","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-06-25","fecha_pago":null,"comentario":""},{"id":"imp-2-40","mes":2,"tipo":"facturas","proveedor":"Cofas","importe":452.13,"nro_factura":"90640260","fecha_factura":"2026-02-15","fecha_vencimiento":"2026-03-15","fecha_pago":null,"comentario":""},{"id":"imp-2-41","mes":2,"tipo":"facturas","proveedor":"Cofas","importe":374.57,"nro_factura":"90643436","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-03-15","fecha_pago":null,"comentario":""},{"id":"imp-2-42","mes":2,"tipo":"facturas","proveedor":"Cofas","importe":4.75,"nro_factura":"90640261","fecha_factura":"2026-02-15","fecha_vencimiento":"2026-04-30","fecha_pago":null,"comentario":""},{"id":"imp-2-43","mes":2,"tipo":"facturas","proveedor":"COMBE","importe":136.67,"nro_factura":"ALBV2601351","fecha_factura":"2026-02-13","fecha_vencimiento":"2026-04-14","fecha_pago":null,"comentario":""},{"id":"imp-2-44","mes":2,"tipo":"facturas","proveedor":"DEITERS S.L.","importe":359.22,"nro_factura":"FV26-001146","fecha_factura":"2026-02-19","fecha_vencimiento":"2026-04-19","fecha_pago":null,"comentario":""},{"id":"imp-2-45","mes":2,"tipo":"facturas","proveedor":"ESTEVE PHARMACEUTICALS S. A.","importe":238.62,"nro_factura":"1060112216","fecha_factura":"2026-02-17","fecha_vencimiento":"2026-05-18","fecha_pago":null,"comentario":""},{"id":"imp-2-46","mes":2,"tipo":"facturas","proveedor":"ESTEVE PHARMACEUTICALS S. A.","importe":204.46,"nro_factura":"1060112768","fecha_factura":"2026-02-19","fecha_vencimiento":"2026-05-20","fecha_pago":null,"comentario":""},{"id":"imp-2-47","mes":2,"tipo":"facturas","proveedor":"Euro Me Distribution","importe":427.06,"nro_factura":"FEMD2601018","fecha_factura":"2026-02-10","fecha_vencimiento":"2026-02-24","fecha_pago":"2026-02-25","comentario":""},{"id":"imp-2-48","mes":2,"tipo":"facturas","proveedor":"EUROLAB FARMA SAL","importe":186.31,"nro_factura":"FV2603483","fecha_factura":"2026-02-24","fecha_vencimiento":"2026-04-25","fecha_pago":null,"comentario":""},{"id":"imp-2-49","mes":2,"tipo":"facturas","proveedor":"faes farma","importe":248.26,"nro_factura":"1100362181","fecha_factura":"2026-04-19","fecha_vencimiento":"2026-04-19","fecha_pago":null,"comentario":""},{"id":"imp-2-50","mes":2,"tipo":"facturas","proveedor":"faes farma","importe":1751.1,"nro_factura":"1100362182","fecha_factura":"2026-02-03","fecha_vencimiento":"2026-08-28","fecha_pago":null,"comentario":""},{"id":"imp-2-51","mes":2,"tipo":"facturas","proveedor":"FERRER INTER.S.A","importe":408.26,"nro_factura":"13257584","fecha_factura":"2026-02-13","fecha_vencimiento":"2026-04-13","fecha_pago":null,"comentario":""},{"id":"imp-2-52","mes":2,"tipo":"facturas","proveedor":"GSK","importe":166.32,"nro_factura":"6445444068","fecha_factura":"2026-02-13","fecha_vencimiento":"2026-04-14","fecha_pago":null,"comentario":""},{"id":"imp-2-53","mes":2,"tipo":"facturas","proveedor":"GSK","importe":459.72,"nro_factura":"6445447390","fecha_factura":"2026-02-23","fecha_vencimiento":"2026-04-09","fecha_pago":null,"comentario":""},{"id":"imp-2-54","mes":2,"tipo":"facturas","proveedor":"IND.FARM.CANTABR","importe":3532.38,"nro_factura":"26019672","fecha_factura":"2026-02-26","fecha_vencimiento":"2026-09-18","fecha_pago":null,"comentario":""},{"id":"imp-2-55","mes":2,"tipo":"facturas","proveedor":"IND.FARM.CANTABR","importe":-158.7,"nro_factura":"26003944","fecha_factura":"2026-02-10","fecha_vencimiento":null,"fecha_pago":null,"comentario":"PROMOCION"},{"id":"imp-2-56","mes":2,"tipo":"facturas","proveedor":"IND.FARM.CANTABR","importe":506.87,"nro_factura":"26012104","fecha_factura":"2026-02-11","fecha_vencimiento":"2026-04-12","fecha_pago":null,"comentario":""},{"id":"imp-2-57","mes":2,"tipo":"facturas","proveedor":"IND.FARM.CANTABR","importe":514.39,"nro_factura":"26003765","fecha_factura":"2026-01-15","fecha_vencimiento":"2026-03-16","fecha_pago":null,"comentario":""},{"id":"imp-2-58","mes":2,"tipo":"facturas","proveedor":"IONFARMA,S.L.","importe":161.08,"nro_factura":"92281448","fecha_factura":"2026-02-18","fecha_vencimiento":"2026-03-18","fecha_pago":null,"comentario":""},{"id":"imp-2-59","mes":2,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":548.41,"nro_factura":"914355599","fecha_factura":"2026-02-03","fecha_vencimiento":"2026-04-04","fecha_pago":null,"comentario":""},{"id":"imp-2-60","mes":2,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":5.16,"nro_factura":"914357158","fecha_factura":"2026-02-04","fecha_vencimiento":"2026-04-05","fecha_pago":null,"comentario":""},{"id":"imp-2-61","mes":2,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":289.78,"nro_factura":"914366347","fecha_factura":"2026-02-10","fecha_vencimiento":"2026-04-11","fecha_pago":null,"comentario":""},{"id":"imp-2-62","mes":2,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":371.67,"nro_factura":"914367424","fecha_factura":"2026-02-11","fecha_vencimiento":"2026-04-12","fecha_pago":null,"comentario":""},{"id":"imp-2-63","mes":2,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":48.03,"nro_factura":"914372157","fecha_factura":"2026-02-16","fecha_vencimiento":"2026-04-17","fecha_pago":null,"comentario":""},{"id":"imp-2-64","mes":2,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":215.57,"nro_factura":"914372155","fecha_factura":"2026-02-16","fecha_vencimiento":"2026-09-30","fecha_pago":null,"comentario":""},{"id":"imp-2-65","mes":2,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":-356.18,"nro_factura":"610635705","fecha_factura":"2026-02-06","fecha_vencimiento":null,"fecha_pago":null,"comentario":"PROMOCION"},{"id":"imp-2-66","mes":2,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":-66.0,"nro_factura":"610585285","fecha_factura":"2025-07-31","fecha_vencimiento":null,"fecha_pago":null,"comentario":"PROMOCION"},{"id":"imp-2-67","mes":2,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":-50.0,"nro_factura":"610587156","fecha_factura":"2025-07-17","fecha_vencimiento":null,"fecha_pago":null,"comentario":"PROMOCION"},{"id":"imp-2-68","mes":2,"tipo":"facturas","proveedor":"Johnson-Johson","importe":388.66,"nro_factura":"5554179310","fecha_factura":"2026-02-02","fecha_vencimiento":"2026-04-03","fecha_pago":null,"comentario":""},{"id":"imp-2-69","mes":2,"tipo":"facturas","proveedor":"Johnson-Johson","importe":18.49,"nro_factura":"5554179309","fecha_factura":"2026-02-02","fecha_vencimiento":"2026-04-03","fecha_pago":null,"comentario":""},{"id":"imp-2-70","mes":2,"tipo":"facturas","proveedor":"Johnson-Johson","importe":366.23,"nro_factura":"554188714","fecha_factura":"2026-02-23","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-2-71","mes":2,"tipo":"facturas","proveedor":"Johnson-Johson","importe":6.15,"nro_factura":"30227015","fecha_factura":"2026-02-23","fecha_vencimiento":"2026-04-24","fecha_pago":null,"comentario":""},{"id":"imp-2-72","mes":2,"tipo":"facturas","proveedor":"Johnson-Johson","importe":542.96,"nro_factura":"5554190450","fecha_factura":"2026-02-24","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-2-73","mes":2,"tipo":"facturas","proveedor":"Johnson-Johson","importe":-16.22,"nro_factura":"7815425784","fecha_factura":"2026-02-02","fecha_vencimiento":"2026-04-03","fecha_pago":null,"comentario":"producto"},{"id":"imp-2-74","mes":2,"tipo":"facturas","proveedor":"KARO","importe":850.52,"nro_factura":"81028741","fecha_factura":"2026-02-26","fecha_vencimiento":"2026-04-27","fecha_pago":null,"comentario":""},{"id":"imp-2-75","mes":2,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":3110.64,"nro_factura":"3401029855","fecha_factura":"2026-02-06","fecha_vencimiento":"2026-04-11","fecha_pago":null,"comentario":""},{"id":"imp-2-76","mes":2,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":86.4,"nro_factura":"3401029856","fecha_factura":"2026-02-06","fecha_vencimiento":"2026-09-07","fecha_pago":null,"comentario":""},{"id":"imp-2-77","mes":2,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":-27.66,"nro_factura":"3460144930","fecha_factura":"2026-02-18","fecha_vencimiento":null,"fecha_pago":null,"comentario":"producto"},{"id":"imp-2-78","mes":2,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":-9.88,"nro_factura":"3460143577","fecha_factura":"2026-02-11","fecha_vencimiento":null,"fecha_pago":null,"comentario":"producto"},{"id":"imp-2-79","mes":2,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":686.4,"nro_factura":"3401039585","fecha_factura":"2026-02-17","fecha_vencimiento":"2026-09-07","fecha_pago":null,"comentario":""},{"id":"imp-2-80","mes":2,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":404.25,"nro_factura":"3401041199","fecha_factura":"2026-02-19","fecha_vencimiento":"2026-04-21","fecha_pago":null,"comentario":""},{"id":"imp-2-81","mes":2,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":1068.54,"nro_factura":"3401045327","fecha_factura":"2026-02-25","fecha_vencimiento":"2026-04-27","fecha_pago":null,"comentario":""},{"id":"imp-2-82","mes":2,"tipo":"facturas","proveedor":"LABORATORIOS VIÑAS","importe":303.18,"nro_factura":"26006078","fecha_factura":"2026-02-23","fecha_vencimiento":"2026-05-24","fecha_pago":null,"comentario":""},{"id":"imp-2-83","mes":2,"tipo":"facturas","proveedor":"LETI PHARMA","importe":1150.94,"nro_factura":"92532821","fecha_factura":"2026-01-30","fecha_vencimiento":"2026-03-30","fecha_pago":null,"comentario":""},{"id":"imp-2-84","mes":2,"tipo":"facturas","proveedor":"LOGISTA PHARMA","importe":3368.32,"nro_factura":"5011526710","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-09-04","fecha_pago":null,"comentario":""},{"id":"imp-2-85","mes":2,"tipo":"facturas","proveedor":"LOGISTA PHARMA (PROCTER-GAMBLE)","importe":1445.87,"nro_factura":"5011513004","fecha_factura":"2026-02-13","fecha_vencimiento":"2026-04-14","fecha_pago":null,"comentario":""},{"id":"imp-2-86","mes":2,"tipo":"facturas","proveedor":"LOGISTA PHARMA (PROCTER-GAMBLE)","importe":50.54,"nro_factura":"5011516227","fecha_factura":"2026-02-18","fecha_vencimiento":"2026-04-19","fecha_pago":null,"comentario":""},{"id":"imp-2-87","mes":2,"tipo":"facturas","proveedor":"LOGISTA PHARMA (PROCTER-GAMBLE)","importe":142.37,"nro_factura":"5011520128","fecha_factura":"2026-02-20","fecha_vencimiento":"2026-04-21","fecha_pago":null,"comentario":""},{"id":"imp-2-88","mes":2,"tipo":"facturas","proveedor":"NAOS SKIN CARE SPAIN S.L.","importe":411.22,"nro_factura":"200820584","fecha_factura":"2026-02-20","fecha_vencimiento":"2026-04-21","fecha_pago":null,"comentario":""},{"id":"imp-2-89","mes":2,"tipo":"facturas","proveedor":"NUTRICION Y SANTE BIMANAN","importe":111.79,"nro_factura":"920779075","fecha_factura":"2026-02-23","fecha_vencimiento":"2026-04-24","fecha_pago":null,"comentario":""},{"id":"imp-2-90","mes":2,"tipo":"facturas","proveedor":"NUTRICION Y SANTE BIMANAN","importe":-17.93,"nro_factura":"930103738","fecha_factura":"2026-01-27","fecha_vencimiento":"2026-03-28","fecha_pago":null,"comentario":"producto"},{"id":"imp-2-91","mes":2,"tipo":"facturas","proveedor":"NUTRICION Y SANTE BIMANAN","importe":-108.04,"nro_factura":"930103739","fecha_factura":"2026-01-27","fecha_vencimiento":"2026-03-28","fecha_pago":null,"comentario":"promocion"},{"id":"imp-2-92","mes":2,"tipo":"facturas","proveedor":"NUTRICION Y SANTE BIMANAN","importe":186.27,"nro_factura":"920773838","fecha_factura":"2026-01-29","fecha_vencimiento":"2026-03-30","fecha_pago":null,"comentario":""},{"id":"imp-2-93","mes":2,"tipo":"facturas","proveedor":"PERRIGO ESPANA","importe":203.96,"nro_factura":"2026015539","fecha_factura":"2026-02-23","fecha_vencimiento":"2026-04-24","fecha_pago":null,"comentario":""},{"id":"imp-2-94","mes":2,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":37.55,"nro_factura":"SIF1397435","fecha_factura":"2026-02-03","fecha_vencimiento":"2026-04-04","fecha_pago":null,"comentario":""},{"id":"imp-2-95","mes":2,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":88.15,"nro_factura":"SIF1399450","fecha_factura":"2026-02-05","fecha_vencimiento":"2026-04-06","fecha_pago":null,"comentario":""},{"id":"imp-2-96","mes":2,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":343.64,"nro_factura":"SIF1407488","fecha_factura":"2026-02-20","fecha_vencimiento":"2026-09-18","fecha_pago":null,"comentario":""},{"id":"imp-2-97","mes":2,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":311.42,"nro_factura":"SIF1408984","fecha_factura":"2026-02-23","fecha_vencimiento":"2026-04-24","fecha_pago":null,"comentario":""},{"id":"imp-2-98","mes":2,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":170.63,"nro_factura":"SIF1410873","fecha_factura":"2026-02-24","fecha_vencimiento":"2026-04-25","fecha_pago":null,"comentario":""},{"id":"imp-2-99","mes":2,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":-58.14,"nro_factura":"SCN0259146","fecha_factura":"2026-02-09","fecha_vencimiento":"2026-04-10","fecha_pago":null,"comentario":"PROMOCION"},{"id":"imp-2-100","mes":2,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":-57.2,"nro_factura":"SCN0259700","fecha_factura":"2026-02-09","fecha_vencimiento":"2026-04-10","fecha_pago":null,"comentario":"PROMOCION"},{"id":"imp-2-101","mes":2,"tipo":"facturas","proveedor":"PRIM","importe":29.28,"nro_factura":"100769481","fecha_factura":"2026-01-30","fecha_vencimiento":"2026-03-31","fecha_pago":null,"comentario":""},{"id":"imp-2-102","mes":2,"tipo":"facturas","proveedor":"PRIM","importe":25.11,"nro_factura":"100775433","fecha_factura":"2026-02-06","fecha_vencimiento":"2026-04-07","fecha_pago":null,"comentario":""},{"id":"imp-2-103","mes":2,"tipo":"facturas","proveedor":"PRIM","importe":542.55,"nro_factura":"100782587","fecha_factura":"2026-02-16","fecha_vencimiento":"2026-04-17","fecha_pago":null,"comentario":""},{"id":"imp-2-104","mes":2,"tipo":"facturas","proveedor":"PRIM","importe":174.73,"nro_factura":"100791955","fecha_factura":"2026-02-26","fecha_vencimiento":"2026-04-27","fecha_pago":null,"comentario":""},{"id":"imp-2-105","mes":2,"tipo":"facturas","proveedor":"RECKITT","importe":629.39,"nro_factura":"2100721948","fecha_factura":"2026-01-28","fecha_vencimiento":"2026-03-24","fecha_pago":null,"comentario":""},{"id":"imp-2-106","mes":2,"tipo":"facturas","proveedor":"REIGJ JOFRE","importe":346.34,"nro_factura":"RJ26VF008933","fecha_factura":"2026-01-29","fecha_vencimiento":"2026-03-29","fecha_pago":null,"comentario":"AT"},{"id":"imp-2-107","mes":2,"tipo":"facturas","proveedor":"REVA HEALTH","importe":331.93,"nro_factura":"026F002856","fecha_factura":"2026-02-16","fecha_vencimiento":"2026-04-17","fecha_pago":null,"comentario":""},{"id":"imp-2-108","mes":2,"tipo":"facturas","proveedor":"SALVAT","importe":1057.57,"nro_factura":"1900743349","fecha_factura":"2026-02-13","fecha_vencimiento":"2026-04-14","fecha_pago":null,"comentario":""},{"id":"imp-2-109","mes":2,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":360.22,"nro_factura":"7061398460","fecha_factura":"2026-02-17","fecha_vencimiento":"2026-04-17","fecha_pago":null,"comentario":""},{"id":"imp-2-110","mes":2,"tipo":"facturas","proveedor":"SUNSTAR","importe":297.46,"nro_factura":"90792707","fecha_factura":"2026-01-30","fecha_vencimiento":"2026-03-01","fecha_pago":null,"comentario":""},{"id":"imp-2-111","mes":2,"tipo":"facturas","proveedor":"THEA","importe":419.38,"nro_factura":"...03262","fecha_factura":"2026-02-12","fecha_vencimiento":"2026-04-13","fecha_pago":null,"comentario":""},{"id":"imp-2-112","mes":2,"tipo":"facturas","proveedor":"TIEDRA","importe":172.64,"nro_factura":"VEN/26/00384","fecha_factura":"2026-02-03","fecha_vencimiento":"2026-03-01","fecha_pago":null,"comentario":""},{"id":"imp-2-113","mes":2,"tipo":"facturas","proveedor":"URIACH (PVP","importe":1489.15,"nro_factura":"7100742623","fecha_factura":"2026-02-12","fecha_vencimiento":"2026-05-13","fecha_pago":null,"comentario":""},{"id":"imp-2-114","mes":2,"tipo":"facturas","proveedor":"URIACH (PVP","importe":270.11,"nro_factura":"7100744126","fecha_factura":"2026-02-16","fecha_vencimiento":"2026-05-17","fecha_pago":null,"comentario":""},{"id":"imp-2-115","mes":2,"tipo":"facturas","proveedor":"VECTEM S.A","importe":271.91,"nro_factura":"FV260363","fecha_factura":"2026-01-30","fecha_vencimiento":"2026-03-01","fecha_pago":null,"comentario":""},{"id":"imp-2-116","mes":2,"tipo":"facturas","proveedor":"VECTEM S.A","importe":407.86,"nro_factura":"FV260720","fecha_factura":"2026-02-26","fecha_vencimiento":"2026-03-28","fecha_pago":null,"comentario":""},{"id":"imp-2-117","mes":2,"tipo":"facturas","proveedor":"VITRY","importe":277.86,"nro_factura":"1288288","fecha_factura":"2026-02-26","fecha_vencimiento":"2026-03-28","fecha_pago":null,"comentario":""},{"id":"imp-2-118","mes":2,"tipo":"facturas","proveedor":"ZAMBON","importe":382.55,"nro_factura":"1026008335","fecha_factura":"2026-02-27","fecha_vencimiento":"2026-04-27","fecha_pago":null,"comentario":""},{"id":"imp-2-119","mes":2,"tipo":"gastos","proveedor":"SISFARMA","importe":254.89,"nro_factura":"26F00864","fecha_factura":"2026-02-01","fecha_vencimiento":null,"fecha_pago":"2026-02-06","comentario":""},{"id":"imp-2-120","mes":2,"tipo":"gastos","proveedor":"TELEFONICA","importe":216.67,"nro_factura":"TA7JS0072895","fecha_factura":"2026-02-19","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-2-121","mes":2,"tipo":"gastos","proveedor":"BD","importe":529.74,"nro_factura":"26/P04591","fecha_factura":"2026-02-01","fecha_vencimiento":"2026-02-01","fecha_pago":"2026-02-04","comentario":""},{"id":"imp-2-122","mes":2,"tipo":"gastos","proveedor":"NATURGY","importe":755.32,"nro_factura":"FE26390007699714","fecha_factura":"2026-02-23","fecha_vencimiento":"2026-03-02","fecha_pago":null,"comentario":""},{"id":"imp-2-123","mes":2,"tipo":"gastos","proveedor":"PEREZ LLORCA","importe":885.37,"nro_factura":"26/1062","fecha_factura":"2026-02-26","fecha_vencimiento":"2026-03-26","fecha_pago":null,"comentario":""},{"id":"imp-2-124","mes":2,"tipo":"gastos","proveedor":"CONSOFT","importe":1499.73,"nro_factura":"F-01598/26","fecha_factura":"2026-02-04","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-2-125","mes":2,"tipo":"gastos","proveedor":"MAS PREVENCION","importe":552.61,"nro_factura":"2F26027278","fecha_factura":"2026-02-25","fecha_vencimiento":"2026-03-07","fecha_pago":null,"comentario":""},{"id":"imp-2-126","mes":2,"tipo":"gastos","proveedor":"FARMASOFT","importe":2138.38,"nro_factura":"INV/2026/001801","fecha_factura":"2026-02-20","fecha_vencimiento":"2026-03-12","fecha_pago":null,"comentario":""},{"id":"imp-2-127","mes":2,"tipo":"gastos","proveedor":"LUDA","importe":5.08,"nro_factura":"SH1236/26","fecha_factura":"2026-01-31","fecha_vencimiento":null,"fecha_pago":"2026-02-07","comentario":""},{"id":"imp-2-128","mes":2,"tipo":"gastos","proveedor":"MEDIFORM","importe":204.49,"nro_factura":"A 26000309","fecha_factura":"2026-02-01","fecha_vencimiento":"2026-02-01","fecha_pago":"2026-02-13","comentario":""},{"id":"imp-2-129","mes":2,"tipo":"gastos","proveedor":"MEDIFORM","importe":332.75,"nro_factura":"","fecha_factura":null,"fecha_vencimiento":null,"fecha_pago":"2026-02-26","comentario":"Factura fraccionada de enero"},{"id":"imp-2-130","mes":2,"tipo":"gastos","proveedor":"TEAMVIEWER","importe":477.71,"nro_factura":"R04408056","fecha_factura":"2026-02-18","fecha_vencimiento":"2026-03-04","fecha_pago":null,"comentario":""},{"id":"imp-3-1","mes":3,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":672.53,"nro_factura":"1260115570","fecha_factura":"2026-02-26","fecha_vencimiento":"2026-04-26","fecha_pago":null,"comentario":""},{"id":"imp-3-2","mes":3,"tipo":"facturas","proveedor":"ALMIRALL","importe":692.57,"nro_factura":"1026146173","fecha_factura":"2026-03-03","fecha_vencimiento":"2026-04-03","fecha_pago":null,"comentario":""},{"id":"imp-3-3","mes":3,"tipo":"facturas","proveedor":"ALMIRALL","importe":451.58,"nro_factura":"1026151131","fecha_factura":"2026-03-18","fecha_vencimiento":"2026-04-18","fecha_pago":null,"comentario":""},{"id":"imp-3-4","mes":3,"tipo":"facturas","proveedor":"BAYER","importe":521.11,"nro_factura":"QF00021239","fecha_factura":"2026-03-09","fecha_vencimiento":"2026-05-09","fecha_pago":null,"comentario":""},{"id":"imp-3-5","mes":3,"tipo":"facturas","proveedor":"BAYER","importe":483.14,"nro_factura":"QF00027758","fecha_factura":"2026-03-20","fecha_vencimiento":"2026-05-20","fecha_pago":null,"comentario":""},{"id":"imp-3-6","mes":3,"tipo":"facturas","proveedor":"BAYER","importe":536.08,"nro_factura":"QF00025039","fecha_factura":"2026-03-17","fecha_vencimiento":"2026-05-17","fecha_pago":null,"comentario":""},{"id":"imp-3-7","mes":3,"tipo":"facturas","proveedor":"BEIERSDORF SDAD.","importe":292.39,"nro_factura":"9744867916","fecha_factura":"2026-03-06","fecha_vencimiento":"2026-05-05","fecha_pago":null,"comentario":""},{"id":"imp-3-8","mes":3,"tipo":"facturas","proveedor":"BEIERSDORF SDAD.","importe":90.51,"nro_factura":"9744873818","fecha_factura":"2026-03-24","fecha_vencimiento":"2026-05-23","fecha_pago":null,"comentario":""},{"id":"imp-3-9","mes":3,"tipo":"facturas","proveedor":"BEIERSDORF SDAD.","importe":378.32,"nro_factura":"9744875306","fecha_factura":"2026-03-25","fecha_vencimiento":"2026-05-24","fecha_pago":null,"comentario":""},{"id":"imp-3-10","mes":3,"tipo":"facturas","proveedor":"BidaFarma","importe":167.51,"nro_factura":"2404827958","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-07-30","fecha_pago":null,"comentario":""},{"id":"imp-3-11","mes":3,"tipo":"facturas","proveedor":"BidaFarma","importe":769.32,"nro_factura":"2404827958","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-08-30","fecha_pago":null,"comentario":""},{"id":"imp-3-12","mes":3,"tipo":"facturas","proveedor":"BidaFarma","importe":17850.93,"nro_factura":"2404827957","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-03-02","fecha_pago":null,"comentario":""},{"id":"imp-3-13","mes":3,"tipo":"facturas","proveedor":"BidaFarma","importe":1486.79,"nro_factura":"2404827957","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-04-30","fecha_pago":null,"comentario":""},{"id":"imp-3-14","mes":3,"tipo":"facturas","proveedor":"BidaFarma","importe":2681.16,"nro_factura":"2404827957","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-05-30","fecha_pago":null,"comentario":""},{"id":"imp-3-15","mes":3,"tipo":"facturas","proveedor":"CAUDALIE SAS","importe":513.38,"nro_factura":"ES0202237","fecha_factura":"2026-03-04","fecha_vencimiento":"2026-05-04","fecha_pago":null,"comentario":""},{"id":"imp-3-16","mes":3,"tipo":"facturas","proveedor":"CAUDALIE SAS","importe":950.44,"nro_factura":"ES0204037","fecha_factura":"2026-03-24","fecha_vencimiento":"2026-05-24","fecha_pago":null,"comentario":""},{"id":"imp-3-17","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":100.69,"nro_factura":"114980082","fecha_factura":"2026-03-10","fecha_vencimiento":"2026-09-25","fecha_pago":null,"comentario":""},{"id":"imp-3-18","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":1610.6,"nro_factura":"114980083","fecha_factura":"2026-03-10","fecha_vencimiento":"2026-04-25","fecha_pago":null,"comentario":""},{"id":"imp-3-19","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":1079.46,"nro_factura":"114980084","fecha_factura":"2026-03-10","fecha_vencimiento":"2026-07-25","fecha_pago":null,"comentario":""},{"id":"imp-3-20","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":484.88,"nro_factura":"114980085","fecha_factura":"2026-03-10","fecha_vencimiento":"2026-10-25","fecha_pago":null,"comentario":""},{"id":"imp-3-21","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":57.22,"nro_factura":"114980086","fecha_factura":"2026-03-10","fecha_vencimiento":"2026-08-25","fecha_pago":null,"comentario":""},{"id":"imp-3-22","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":167.69,"nro_factura":"114980087","fecha_factura":"2026-03-10","fecha_vencimiento":"2026-10-25","fecha_pago":null,"comentario":""},{"id":"imp-3-23","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":797.29,"nro_factura":"114980088","fecha_factura":"2026-03-10","fecha_vencimiento":"2026-10-25","fecha_pago":null,"comentario":""},{"id":"imp-3-24","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":2206.69,"nro_factura":"115008432","fecha_factura":"2026-03-20","fecha_vencimiento":"2026-04-25","fecha_pago":null,"comentario":""},{"id":"imp-3-25","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":202.07,"nro_factura":"115008433","fecha_factura":"2026-03-20","fecha_vencimiento":"2026-09-25","fecha_pago":null,"comentario":""},{"id":"imp-3-26","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":1644.14,"nro_factura":"115008434","fecha_factura":"2026-03-20","fecha_vencimiento":"2026-07-25","fecha_pago":null,"comentario":""},{"id":"imp-3-27","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":13.51,"nro_factura":"115008435","fecha_factura":"2026-03-20","fecha_vencimiento":"2026-11-25","fecha_pago":null,"comentario":""},{"id":"imp-3-28","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":37.93,"nro_factura":"115008436","fecha_factura":"2026-03-20","fecha_vencimiento":"2026-10-25","fecha_pago":null,"comentario":""},{"id":"imp-3-29","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":25.44,"nro_factura":"115008437","fecha_factura":"2026-03-20","fecha_vencimiento":"2026-08-25","fecha_pago":null,"comentario":""},{"id":"imp-3-30","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":2447.57,"nro_factura":"115033068","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-07-25","fecha_pago":null,"comentario":""},{"id":"imp-3-31","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":138.59,"nro_factura":"115033069","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-09-25","fecha_pago":null,"comentario":""},{"id":"imp-3-32","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":1716.23,"nro_factura":"115033070","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-04-25","fecha_pago":null,"comentario":""},{"id":"imp-3-33","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":4.07,"nro_factura":"115033071","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-08-25","fecha_pago":null,"comentario":""},{"id":"imp-3-34","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":8.75,"nro_factura":"115033072","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-08-25","fecha_pago":null,"comentario":""},{"id":"imp-3-35","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":29.26,"nro_factura":"115033073","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-11-25","fecha_pago":null,"comentario":""},{"id":"imp-3-36","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":218.09,"nro_factura":"115033074","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-08-25","fecha_pago":null,"comentario":""},{"id":"imp-3-37","mes":3,"tipo":"facturas","proveedor":"COFARES","importe":60.53,"nro_factura":"151498600","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-04-25","fecha_pago":null,"comentario":""},{"id":"imp-3-38","mes":3,"tipo":"facturas","proveedor":"Cofas","importe":193.62,"nro_factura":"90646160","fecha_factura":"2026-03-15","fecha_vencimiento":"2026-04-15","fecha_pago":null,"comentario":""},{"id":"imp-3-39","mes":3,"tipo":"facturas","proveedor":"Cofas","importe":375.42,"nro_factura":"90649880","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-04-15","fecha_pago":null,"comentario":""},{"id":"imp-3-40","mes":3,"tipo":"facturas","proveedor":"Cofas","importe":1.67,"nro_factura":"90646161","fecha_factura":"2026-03-15","fecha_vencimiento":"2026-05-31","fecha_pago":null,"comentario":""},{"id":"imp-3-41","mes":3,"tipo":"facturas","proveedor":"Cofas","importe":9.44,"nro_factura":"90649881","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-05-31","fecha_pago":null,"comentario":""},{"id":"imp-3-42","mes":3,"tipo":"facturas","proveedor":"COMBE","importe":118.92,"nro_factura":"FVR2601875","fecha_factura":"2026-03-06","fecha_vencimiento":"2026-05-05","fecha_pago":null,"comentario":""},{"id":"imp-3-43","mes":3,"tipo":"facturas","proveedor":"ESTEVE PHARMACEUTICALS S. A.","importe":336.22,"nro_factura":"1060116402","fecha_factura":"2026-03-04","fecha_vencimiento":"2026-06-02","fecha_pago":null,"comentario":""},{"id":"imp-3-44","mes":3,"tipo":"facturas","proveedor":"EUROLAB FARMA SAL","importe":127.81,"nro_factura":"FV2604971","fecha_factura":"2026-03-16","fecha_vencimiento":"2026-05-15","fecha_pago":null,"comentario":""},{"id":"imp-3-45","mes":3,"tipo":"facturas","proveedor":"EUROLAB FARMA SAL","importe":19.68,"nro_factura":"FV2605747","fecha_factura":"2026-03-25","fecha_vencimiento":"2026-05-24","fecha_pago":null,"comentario":""},{"id":"imp-3-46","mes":3,"tipo":"facturas","proveedor":"EUROLAB FARMA SAL","importe":29.51,"nro_factura":"FV2606243","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-05-30","fecha_pago":null,"comentario":""},{"id":"imp-3-47","mes":3,"tipo":"facturas","proveedor":"EUROLAB FARMA SAL","importe":11.51,"nro_factura":"FV2606242","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-05-30","fecha_pago":null,"comentario":""},{"id":"imp-3-48","mes":3,"tipo":"facturas","proveedor":"EUROLAB FARMA SAL","importe":127.76,"nro_factura":"FV2606015","fecha_factura":"2026-03-30","fecha_vencimiento":"2026-05-29","fecha_pago":null,"comentario":""},{"id":"imp-3-49","mes":3,"tipo":"facturas","proveedor":"faes farma","importe":184.05,"nro_factura":"1100373511","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-06-14","fecha_pago":null,"comentario":""},{"id":"imp-3-50","mes":3,"tipo":"facturas","proveedor":"faes farma","importe":569.38,"nro_factura":"1100373512","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-08-28","fecha_pago":null,"comentario":""},{"id":"imp-3-51","mes":3,"tipo":"facturas","proveedor":"FARMAUCO,S.L.","importe":427.47,"nro_factura":"775","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-03-30","fecha_pago":null,"comentario":""},{"id":"imp-3-52","mes":3,"tipo":"facturas","proveedor":"FARMAUCO,S.L.","importe":1604.36,"nro_factura":"407","fecha_factura":"2026-01-31","fecha_vencimiento":"2026-03-02","fecha_pago":null,"comentario":""},{"id":"imp-3-53","mes":3,"tipo":"facturas","proveedor":"FERRER INTER.S.A","importe":388.19,"nro_factura":"13270913","fecha_factura":"2026-03-25","fecha_vencimiento":"2026-05-25","fecha_pago":null,"comentario":""},{"id":"imp-3-54","mes":3,"tipo":"facturas","proveedor":"GSK","importe":337.54,"nro_factura":"6445451819","fecha_factura":"2026-03-09","fecha_vencimiento":"2026-05-08","fecha_pago":null,"comentario":""},{"id":"imp-3-55","mes":3,"tipo":"facturas","proveedor":"GSK","importe":576.57,"nro_factura":"6445451820","fecha_factura":"2026-03-09","fecha_vencimiento":"2026-08-06","fecha_pago":null,"comentario":""},{"id":"imp-3-56","mes":3,"tipo":"facturas","proveedor":"GSK","importe":780.72,"nro_factura":"6445460921","fecha_factura":"2026-03-24","fecha_vencimiento":"2026-05-23","fecha_pago":null,"comentario":""},{"id":"imp-3-57","mes":3,"tipo":"facturas","proveedor":"IND.FARM.CANTABR","importe":44.0,"nro_factura":"26024080","fecha_factura":"2026-03-09","fecha_vencimiento":"2026-09-18","fecha_pago":null,"comentario":""},{"id":"imp-3-58","mes":3,"tipo":"facturas","proveedor":"IND.FARM.CANTABR","importe":17.12,"nro_factura":"26030309","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-07-29","fecha_pago":null,"comentario":""},{"id":"imp-3-59","mes":3,"tipo":"facturas","proveedor":"IND.FARM.CANTABR","importe":-427.88,"nro_factura":"26006133","fecha_factura":"2026-03-06","fecha_vencimiento":null,"fecha_pago":null,"comentario":"PROMOCION"},{"id":"imp-3-60","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":203.55,"nro_factura":"914392132","fecha_factura":"2026-03-03","fecha_vencimiento":"2026-05-02","fecha_pago":null,"comentario":""},{"id":"imp-3-61","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":-203.55,"nro_factura":"914452047","fecha_factura":"2027-03-26","fecha_vencimiento":null,"fecha_pago":null,"comentario":"ANULACION FACTURA"},{"id":"imp-3-62","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":199.74,"nro_factura":"914452048","fecha_factura":"2026-03-26","fecha_vencimiento":"2026-04-30","fecha_pago":null,"comentario":""},{"id":"imp-3-63","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":2513.25,"nro_factura":"914392134","fecha_factura":"2026-03-03","fecha_vencimiento":"2026-09-30","fecha_pago":null,"comentario":""},{"id":"imp-3-64","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":24.51,"nro_factura":"914392137","fecha_factura":"2026-03-03","fecha_vencimiento":"2026-05-02","fecha_pago":null,"comentario":""},{"id":"imp-3-65","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":157.19,"nro_factura":"914398236","fecha_factura":"2026-03-04","fecha_vencimiento":"2026-05-03","fecha_pago":null,"comentario":""},{"id":"imp-3-66","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":64.31,"nro_factura":"914406256","fecha_factura":"2026-03-09","fecha_vencimiento":"2026-05-08","fecha_pago":null,"comentario":""},{"id":"imp-3-67","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":146.25,"nro_factura":"914412892","fecha_factura":"2026-03-10","fecha_vencimiento":"2026-05-09","fecha_pago":null,"comentario":""},{"id":"imp-3-68","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":-157.19,"nro_factura":"914412891","fecha_factura":"2026-03-10","fecha_vencimiento":null,"fecha_pago":null,"comentario":"ANULACION FACTURA"},{"id":"imp-3-69","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":67.77,"nro_factura":"914434992","fecha_factura":"2026-03-23","fecha_vencimiento":"2026-09-30","fecha_pago":null,"comentario":""},{"id":"imp-3-70","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":79.15,"nro_factura":"914434993","fecha_factura":"2026-03-23","fecha_vencimiento":"2026-05-22","fecha_pago":null,"comentario":""},{"id":"imp-3-71","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":45.21,"nro_factura":"914452668","fecha_factura":"2026-03-26","fecha_vencimiento":"2026-05-25","fecha_pago":null,"comentario":""},{"id":"imp-3-72","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":29.68,"nro_factura":"914456916","fecha_factura":"2026-03-27","fecha_vencimiento":"2026-05-26","fecha_pago":null,"comentario":""},{"id":"imp-3-73","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":-289.78,"nro_factura":"610644307","fecha_factura":"2026-03-04","fecha_vencimiento":null,"fecha_pago":null,"comentario":"DEVOLUCION"},{"id":"imp-3-74","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":-56.73,"nro_factura":"610644346","fecha_factura":"2026-03-04","fecha_vencimiento":null,"fecha_pago":null,"comentario":"DEVOLUCION"},{"id":"imp-3-75","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":-17.02,"nro_factura":"610645735","fecha_factura":"2026-03-10","fecha_vencimiento":null,"fecha_pago":null,"comentario":"DEVOLUCION"},{"id":"imp-3-76","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":-13.0,"nro_factura":"610645736","fecha_factura":"2026-03-10","fecha_vencimiento":null,"fecha_pago":null,"comentario":"DEVOLUCION"},{"id":"imp-3-77","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":-23.38,"nro_factura":"610645738","fecha_factura":"2026-03-10","fecha_vencimiento":null,"fecha_pago":null,"comentario":"DEVOLUCION"},{"id":"imp-3-78","mes":3,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":-25.02,"nro_factura":"610648072","fecha_factura":"2026-03-20","fecha_vencimiento":null,"fecha_pago":null,"comentario":"PROMOCION"},{"id":"imp-3-79","mes":3,"tipo":"facturas","proveedor":"Johnson-Johson","importe":620.8,"nro_factura":"5554197046","fecha_factura":"2026-03-06","fecha_vencimiento":"2026-05-05","fecha_pago":null,"comentario":""},{"id":"imp-3-80","mes":3,"tipo":"facturas","proveedor":"Johnson-Johson","importe":18.49,"nro_factura":"5554202234","fecha_factura":"2026-03-13","fecha_vencimiento":"2026-05-12","fecha_pago":null,"comentario":""},{"id":"imp-3-81","mes":3,"tipo":"facturas","proveedor":"Johnson-Johson","importe":213.11,"nro_factura":"5554202235","fecha_factura":"2026-03-13","fecha_vencimiento":"2026-05-12","fecha_pago":null,"comentario":""},{"id":"imp-3-82","mes":3,"tipo":"facturas","proveedor":"Johnson-Johson","importe":274.71,"nro_factura":"5554209249","fecha_factura":"2026-03-25","fecha_vencimiento":"2026-05-24","fecha_pago":null,"comentario":""},{"id":"imp-3-83","mes":3,"tipo":"facturas","proveedor":"Johnson-Johson","importe":-274.71,"nro_factura":"7815430423","fecha_factura":"2026-03-30","fecha_vencimiento":"2026-05-29","fecha_pago":null,"comentario":""},{"id":"imp-3-84","mes":3,"tipo":"facturas","proveedor":"Johnson-Johson","importe":227.48,"nro_factura":"5554210725","fecha_factura":"2026-03-30","fecha_vencimiento":"2026-05-29","fecha_pago":null,"comentario":""},{"id":"imp-3-85","mes":3,"tipo":"facturas","proveedor":"Johnson-Johson","importe":-32.41,"nro_factura":"1800001153","fecha_factura":"2026-02-11","fecha_vencimiento":"2026-02-19","fecha_pago":"2026-02-19","comentario":"PROMOCION"},{"id":"imp-3-86","mes":3,"tipo":"facturas","proveedor":"KERN","importe":729.83,"nro_factura":"900571247","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-03-28","fecha_pago":null,"comentario":""},{"id":"imp-3-87","mes":3,"tipo":"facturas","proveedor":"KERN","importe":26.44,"nro_factura":"9000571246","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-03-28","fecha_pago":null,"comentario":""},{"id":"imp-3-88","mes":3,"tipo":"facturas","proveedor":"KERN","importe":-13.22,"nro_factura":"7000056026","fecha_factura":"2026-03-19","fecha_vencimiento":"2026-04-19","fecha_pago":null,"comentario":"ABONO"},{"id":"imp-3-89","mes":3,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":1160.33,"nro_factura":"3401048637","fecha_factura":"2026-03-02","fecha_vencimiento":"2026-05-02","fecha_pago":null,"comentario":""},{"id":"imp-3-90","mes":3,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":2230.97,"nro_factura":"3401053705","fecha_factura":"2026-03-06","fecha_vencimiento":"2026-05-08","fecha_pago":null,"comentario":""},{"id":"imp-3-91","mes":3,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":538.76,"nro_factura":"3401061525","fecha_factura":"2026-03-13","fecha_vencimiento":"2026-05-15","fecha_pago":null,"comentario":""},{"id":"imp-3-92","mes":3,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":14.16,"nro_factura":"3401070586","fecha_factura":"2026-03-24","fecha_vencimiento":"2026-09-07","fecha_pago":null,"comentario":""},{"id":"imp-3-93","mes":3,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":1152.79,"nro_factura":"3401070588","fecha_factura":"2026-03-24","fecha_vencimiento":"2026-05-24","fecha_pago":null,"comentario":""},{"id":"imp-3-94","mes":3,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":188.23,"nro_factura":"3401074144","fecha_factura":"2026-03-26","fecha_vencimiento":"2026-05-26","fecha_pago":null,"comentario":""},{"id":"imp-3-95","mes":3,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":42.71,"nro_factura":"3401077987","fecha_factura":"2026-03-30","fecha_vencimiento":"2026-09-07","fecha_pago":null,"comentario":""},{"id":"imp-3-96","mes":3,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":765.23,"nro_factura":"3401077989","fecha_factura":"2026-03-30","fecha_vencimiento":"2026-05-30","fecha_pago":null,"comentario":""},{"id":"imp-3-97","mes":3,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":-157.04,"nro_factura":"3460148908","fecha_factura":"2026-03-30","fecha_vencimiento":null,"fecha_pago":null,"comentario":"PRODUCTO"},{"id":"imp-3-98","mes":3,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":-52.75,"nro_factura":"3460149586","fecha_factura":"2026-04-07","fecha_vencimiento":null,"fecha_pago":"2026-04-14","comentario":"PRODUCTO"},{"id":"imp-3-99","mes":3,"tipo":"facturas","proveedor":"LABORATORIOS VIÑAS","importe":263.28,"nro_factura":"26008815","fecha_factura":"2026-03-18","fecha_vencimiento":"2026-06-16","fecha_pago":null,"comentario":""},{"id":"imp-3-100","mes":3,"tipo":"facturas","proveedor":"LOGISTA PHARMA (PROCTER-GAMBLE)","importe":1033.46,"nro_factura":"5011527609","fecha_factura":"2026-03-02","fecha_vencimiento":"2026-05-01","fecha_pago":null,"comentario":""},{"id":"imp-3-101","mes":3,"tipo":"facturas","proveedor":"LOGISTA PHARMA (PROCTER-GAMBLE)","importe":476.24,"nro_factura":"5011545333","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-05-30","fecha_pago":null,"comentario":""},{"id":"imp-3-102","mes":3,"tipo":"facturas","proveedor":"LOGISTA PHARMA (PROCTER-GAMBLE)","importe":1038.43,"nro_factura":"5011547105","fecha_factura":"2026-03-31","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-3-103","mes":3,"tipo":"facturas","proveedor":"LOGISTA PHARMA (PROCTER-GAMBLE)","importe":136.46,"nro_factura":"5011548290","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-05-30","fecha_pago":null,"comentario":""},{"id":"imp-3-104","mes":3,"tipo":"facturas","proveedor":"LOGISTA PHARMA (PROCTER-GAMBLE)","importe":-35.37,"nro_factura":"5027068014","fecha_factura":"2026-02-21","fecha_vencimiento":"2026-02-26","fecha_pago":null,"comentario":"ABONO"},{"id":"imp-3-105","mes":3,"tipo":"facturas","proveedor":"MARTIDERM S.L.","importe":1076.87,"nro_factura":"...3839","fecha_factura":"2026-03-02","fecha_vencimiento":"2026-05-31","fecha_pago":null,"comentario":""},{"id":"imp-3-106","mes":3,"tipo":"facturas","proveedor":"MARTIDERM S.L.","importe":83.9,"nro_factura":"...3830","fecha_factura":"2026-03-02","fecha_vencimiento":"2026-05-31","fecha_pago":null,"comentario":""},{"id":"imp-3-107","mes":3,"tipo":"facturas","proveedor":"MARTIDERM S.L.","importe":344.15,"nro_factura":"...5790","fecha_factura":"2026-03-25","fecha_vencimiento":"2026-05-24","fecha_pago":null,"comentario":""},{"id":"imp-3-108","mes":3,"tipo":"facturas","proveedor":"MEDI BAYREUTH ESP","importe":79.86,"nro_factura":"26012143","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-04-30","fecha_pago":null,"comentario":""},{"id":"imp-3-109","mes":3,"tipo":"facturas","proveedor":"MOGAR","importe":305.53,"nro_factura":"185105","fecha_factura":"2026-03-04","fecha_vencimiento":"2026-05-04","fecha_pago":null,"comentario":""},{"id":"imp-3-110","mes":3,"tipo":"facturas","proveedor":"NAOS SKIN CARE SPAIN S.L.","importe":403.27,"nro_factura":"200822900","fecha_factura":"2026-03-11","fecha_vencimiento":"2026-05-10","fecha_pago":null,"comentario":""},{"id":"imp-3-111","mes":3,"tipo":"facturas","proveedor":"NAOS SKIN CARE SPAIN S.L.","importe":576.56,"nro_factura":"200826177","fecha_factura":"2026-03-30","fecha_vencimiento":"2026-05-29","fecha_pago":null,"comentario":""},{"id":"imp-3-112","mes":3,"tipo":"facturas","proveedor":"NDL","importe":775.79,"nro_factura":"...0065","fecha_factura":"2026-03-02","fecha_vencimiento":"2026-04-02","fecha_pago":null,"comentario":""},{"id":"imp-3-113","mes":3,"tipo":"facturas","proveedor":"NUTRICION Y SANTE BIMANAN","importe":193.01,"nro_factura":"920784567","fecha_factura":"2026-03-19","fecha_vencimiento":"2026-05-18","fecha_pago":null,"comentario":""},{"id":"imp-3-114","mes":3,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":65.71,"nro_factura":"SIF1414469","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-04-29","fecha_pago":null,"comentario":""},{"id":"imp-3-115","mes":3,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":323.02,"nro_factura":"SIF1424728","fecha_factura":"2026-03-17","fecha_vencimiento":"2026-06-15","fecha_pago":null,"comentario":""},{"id":"imp-3-116","mes":3,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":11.29,"nro_factura":"SIF1423341","fecha_factura":"2026-03-16","fecha_vencimiento":"2026-05-15","fecha_pago":null,"comentario":""},{"id":"imp-3-117","mes":3,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":-49.9,"nro_factura":"SCN0266855","fecha_factura":"2026-03-11","fecha_vencimiento":"2026-03-11","fecha_pago":null,"comentario":"RAPPEL"},{"id":"imp-3-118","mes":3,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":-18.27,"nro_factura":"SCN266848","fecha_factura":"2026-03-11","fecha_vencimiento":"2026-03-11","fecha_pago":null,"comentario":"RAPPEL"},{"id":"imp-3-119","mes":3,"tipo":"facturas","proveedor":"SALVAT","importe":1055.67,"nro_factura":"1900749545","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-05-30","fecha_pago":null,"comentario":""},{"id":"imp-3-120","mes":3,"tipo":"facturas","proveedor":"SALVAT","importe":96.98,"nro_factura":"1900748297","fecha_factura":"2026-03-25","fecha_vencimiento":"2026-05-24","fecha_pago":null,"comentario":"AT"},{"id":"imp-3-121","mes":3,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":425.97,"nro_factura":"7061404355","fecha_factura":"2026-03-16","fecha_vencimiento":"2026-05-16","fecha_pago":null,"comentario":""},{"id":"imp-3-122","mes":3,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":195.27,"nro_factura":"7061404356","fecha_factura":"2026-03-16","fecha_vencimiento":"2026-07-16","fecha_pago":null,"comentario":""},{"id":"imp-3-123","mes":3,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":342.19,"nro_factura":"7061407186","fecha_factura":"2026-03-30","fecha_vencimiento":"2026-05-30","fecha_pago":null,"comentario":""},{"id":"imp-3-124","mes":3,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":203.77,"nro_factura":"7061407187","fecha_factura":"2026-03-30","fecha_vencimiento":"2026-07-30","fecha_pago":null,"comentario":""},{"id":"imp-3-125","mes":3,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":96.98,"nro_factura":"1900748297","fecha_factura":"2026-03-25","fecha_vencimiento":"2026-05-24","fecha_pago":null,"comentario":""},{"id":"imp-3-126","mes":3,"tipo":"facturas","proveedor":"THEA","importe":865.32,"nro_factura":"...04844","fecha_factura":"2026-03-06","fecha_vencimiento":"2026-06-04","fecha_pago":null,"comentario":""},{"id":"imp-3-127","mes":3,"tipo":"facturas","proveedor":"TIEDRA","importe":180.72,"nro_factura":"VEN/26/01194","fecha_factura":"2026-03-18","fecha_vencimiento":"2026-04-17","fecha_pago":null,"comentario":""},{"id":"imp-3-128","mes":3,"tipo":"facturas","proveedor":"UNINEED LIMITED","importe":279.9,"nro_factura":"","fecha_factura":"2026-03-02","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-3-129","mes":3,"tipo":"facturas","proveedor":"UNINEED LIMITED","importe":267.9,"nro_factura":"","fecha_factura":"2026-03-19","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-3-130","mes":3,"tipo":"facturas","proveedor":"UNINEED LIMITED","importe":279.9,"nro_factura":"","fecha_factura":"2026-02-24","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-3-131","mes":3,"tipo":"facturas","proveedor":"URIACH (PVP","importe":1098.76,"nro_factura":"7100754370","fecha_factura":"2026-02-27","fecha_vencimiento":"2026-08-26","fecha_pago":null,"comentario":""},{"id":"imp-3-132","mes":3,"tipo":"facturas","proveedor":"URIACH (PVP","importe":1033.31,"nro_factura":"7100752068","fecha_factura":"2026-03-24","fecha_vencimiento":"2026-05-25","fecha_pago":null,"comentario":""},{"id":"imp-3-133","mes":3,"tipo":"facturas","proveedor":"ZAMBON","importe":586.84,"nro_factura":"1026011026","fecha_factura":"2026-03-19","fecha_vencimiento":"2026-05-19","fecha_pago":null,"comentario":""},{"id":"imp-3-134","mes":3,"tipo":"gastos","proveedor":"Q Papelería","importe":61.99,"nro_factura":"","fecha_factura":null,"fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-3-135","mes":3,"tipo":"gastos","proveedor":"TELEFONICA","importe":199.89,"nro_factura":"TA7JT0072661","fecha_factura":"2026-03-19","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-3-136","mes":3,"tipo":"gastos","proveedor":"BD","importe":529.74,"nro_factura":"26/P06241","fecha_factura":"2026-03-01","fecha_vencimiento":"2026-03-01","fecha_pago":null,"comentario":""},{"id":"imp-3-137","mes":3,"tipo":"gastos","proveedor":"ANA ROCIO MUÑOS RODRIGUEZ","importe":383.87,"nro_factura":"008/2026","fecha_factura":"2026-02-28","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-3-138","mes":3,"tipo":"gastos","proveedor":"ANA ROCIO MUÑOS RODRIGUEZ","importe":359.37,"nro_factura":"015/2026","fecha_factura":"2026-03-30","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-3-139","mes":3,"tipo":"gastos","proveedor":"PEREZ LLORCA","importe":885.37,"nro_factura":"26/1933","fecha_factura":"2026-03-27","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-3-140","mes":3,"tipo":"gastos","proveedor":"LUDA","importe":1.5,"nro_factura":"SH2565/26","fecha_factura":"2026-02-28","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-3-141","mes":3,"tipo":"gastos","proveedor":"LUDA","importe":0.87,"nro_factura":"CF221/26","fecha_factura":"2026-03-31","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-3-142","mes":3,"tipo":"gastos","proveedor":"LUDA","importe":283.2,"nro_factura":"GL1684/26","fecha_factura":"2026-03-31","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-3-143","mes":3,"tipo":"gastos","proveedor":"LUDA","importe":2.83,"nro_factura":"SH3954/26","fecha_factura":"2026-03-31","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-3-144","mes":3,"tipo":"gastos","proveedor":"LUDA","importe":316.79,"nro_factura":"GL1336/26","fecha_factura":"2026-02-27","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-4-1","mes":4,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":236.78,"nro_factura":"1260163947","fecha_factura":"2026-04-09","fecha_vencimiento":"2026-05-09","fecha_pago":null,"comentario":""},{"id":"imp-4-2","mes":4,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":-26.47,"nro_factura":"2260062334","fecha_factura":"2026-04-23","fecha_vencimiento":"2026-06-23","fecha_pago":null,"comentario":""},{"id":"imp-4-3","mes":4,"tipo":"facturas","proveedor":"3-CINFA ADSL","importe":745.74,"nro_factura":"1260188438","fecha_factura":"2026-04-27","fecha_vencimiento":"2026-06-27","fecha_pago":null,"comentario":""},{"id":"imp-4-4","mes":4,"tipo":"facturas","proveedor":"ABOCA ESPANA S.A.","importe":1286.65,"nro_factura":"11020619","fecha_factura":"2026-04-08","fecha_vencimiento":"2026-07-08","fecha_pago":null,"comentario":""},{"id":"imp-4-5","mes":4,"tipo":"facturas","proveedor":"ABOCA ESPANA S.A.","importe":149.76,"nro_factura":"11020895","fecha_factura":"2026-04-09","fecha_vencimiento":"2026-07-09","fecha_pago":null,"comentario":""},{"id":"imp-4-6","mes":4,"tipo":"facturas","proveedor":"ACTAFARMA","importe":428.95,"nro_factura":"9010058192","fecha_factura":"2026-04-16","fecha_vencimiento":"2026-05-16","fecha_pago":null,"comentario":""},{"id":"imp-4-7","mes":4,"tipo":"facturas","proveedor":"ALMIRALL","importe":734.53,"nro_factura":"1026156872","fecha_factura":"2026-04-10","fecha_vencimiento":"2026-05-10","fecha_pago":null,"comentario":""},{"id":"imp-4-8","mes":4,"tipo":"facturas","proveedor":"ALMIRALL","importe":567.92,"nro_factura":"1026159087","fecha_factura":"2026-04-21","fecha_vencimiento":"2026-05-21","fecha_pago":null,"comentario":""},{"id":"imp-4-9","mes":4,"tipo":"facturas","proveedor":"AMAZON","importe":22.08,"nro_factura":"...GLAEUS","fecha_factura":"2026-04-09","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-4-10","mes":4,"tipo":"facturas","proveedor":"AMAZON","importe":34.06,"nro_factura":"...XAEUS","fecha_factura":"2026-04-09","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-4-11","mes":4,"tipo":"facturas","proveedor":"BAYER","importe":376.38,"nro_factura":"QF00039494","fecha_factura":"2026-04-15","fecha_vencimiento":"2026-06-14","fecha_pago":null,"comentario":""},{"id":"imp-4-12","mes":4,"tipo":"facturas","proveedor":"BAYER","importe":375.01,"nro_factura":"QF00048027","fecha_factura":"2026-04-30","fecha_vencimiento":"2026-06-29","fecha_pago":null,"comentario":""},{"id":"imp-4-13","mes":4,"tipo":"facturas","proveedor":"BAYER","importe":64.23,"nro_factura":"QF00033846","fecha_factura":"2026-04-06","fecha_vencimiento":"2026-06-05","fecha_pago":null,"comentario":""},{"id":"imp-4-14","mes":4,"tipo":"facturas","proveedor":"BEIERSDORF SDAD.","importe":827.94,"nro_factura":"9744881072","fecha_factura":"2026-04-09","fecha_vencimiento":"2026-06-08","fecha_pago":null,"comentario":""},{"id":"imp-4-15","mes":4,"tipo":"facturas","proveedor":"BETER","importe":151.97,"nro_factura":"10237122","fecha_factura":"2026-04-01","fecha_vencimiento":"2026-05-31","fecha_pago":null,"comentario":""},{"id":"imp-4-16","mes":4,"tipo":"facturas","proveedor":"BETER","importe":170.34,"nro_factura":"10238713","fecha_factura":"2026-04-20","fecha_vencimiento":"2026-06-19","fecha_pago":null,"comentario":""},{"id":"imp-4-17","mes":4,"tipo":"facturas","proveedor":"BETER","importe":109.86,"nro_factura":"10239400","fecha_factura":"2026-04-23","fecha_vencimiento":"2026-06-22","fecha_pago":null,"comentario":""},{"id":"imp-4-18","mes":4,"tipo":"facturas","proveedor":"BETER","importe":-60.11,"nro_factura":"11030589","fecha_factura":"2026-03-03","fecha_vencimiento":"2026-05-03","fecha_pago":null,"comentario":"PRODUCTO"},{"id":"imp-4-19","mes":4,"tipo":"facturas","proveedor":"CASEN","importe":555.41,"nro_factura":"...14861","fecha_factura":"2026-04-10","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-4-20","mes":4,"tipo":"facturas","proveedor":"CAUDALIE SAS","importe":1221.21,"nro_factura":"ES0204894","fecha_factura":"2026-04-02","fecha_vencimiento":"2026-06-02","fecha_pago":null,"comentario":""},{"id":"imp-4-21","mes":4,"tipo":"facturas","proveedor":"CAUDALIE SAS","importe":650.89,"nro_factura":"ES0207629","fecha_factura":"2026-04-22","fecha_vencimiento":"2026-06-22","fecha_pago":null,"comentario":""},{"id":"imp-4-22","mes":4,"tipo":"facturas","proveedor":"DEITERS S.L.","importe":360.27,"nro_factura":"FV26-002355","fecha_factura":"2026-04-13","fecha_vencimiento":"2026-06-13","fecha_pago":null,"comentario":""},{"id":"imp-4-23","mes":4,"tipo":"facturas","proveedor":"DERMOFARM","importe":956.78,"nro_factura":"2001467092","fecha_factura":"2026-04-20","fecha_vencimiento":"2026-06-20","fecha_pago":null,"comentario":""},{"id":"imp-4-24","mes":4,"tipo":"facturas","proveedor":"ESTEVE PHARMACEUTICALS S. A.","importe":389.31,"nro_factura":"1060129093","fecha_factura":"2026-04-21","fecha_vencimiento":"2026-07-20","fecha_pago":null,"comentario":""},{"id":"imp-4-25","mes":4,"tipo":"facturas","proveedor":"Euro Me Distribution","importe":355.88,"nro_factura":"FEMD2602612","fecha_factura":"2026-04-06","fecha_vencimiento":"2026-04-20","fecha_pago":null,"comentario":""},{"id":"imp-4-26","mes":4,"tipo":"facturas","proveedor":"Euro Me Distribution","importe":21.39,"nro_factura":"FEMD2602890","fecha_factura":"2026-04-16","fecha_vencimiento":"2026-04-30","fecha_pago":null,"comentario":""},{"id":"imp-4-27","mes":4,"tipo":"facturas","proveedor":"EUROLAB FARMA SAL","importe":180.19,"nro_factura":"FV2607459","fecha_factura":"2026-04-20","fecha_vencimiento":"2026-06-19","fecha_pago":null,"comentario":""},{"id":"imp-4-28","mes":4,"tipo":"facturas","proveedor":"EUROLAB FARMA SAL","importe":-6.87,"nro_factura":"AV2600707","fecha_factura":"2026-03-23","fecha_vencimiento":"2026-04-25","fecha_pago":null,"comentario":""},{"id":"imp-4-29","mes":4,"tipo":"facturas","proveedor":"EUROLAB FARMA SAL","importe":-1.81,"nro_factura":"AV2600706","fecha_factura":"2026-03-23","fecha_vencimiento":"2026-05-15","fecha_pago":null,"comentario":""},{"id":"imp-4-30","mes":4,"tipo":"facturas","proveedor":"EUROLAB FARMA SAL","importe":11.51,"nro_factura":"FV2603982","fecha_factura":"2026-03-03","fecha_vencimiento":"2026-05-02","fecha_pago":null,"comentario":""},{"id":"imp-4-31","mes":4,"tipo":"facturas","proveedor":"EUROLAB FARMA SAL","importe":39.34,"nro_factura":"FV2603910","fecha_factura":"2026-02-28","fecha_vencimiento":"2026-04-29","fecha_pago":null,"comentario":""},{"id":"imp-4-32","mes":4,"tipo":"facturas","proveedor":"FARMAUCO,S.L.","importe":1772.84,"nro_factura":"1186","fecha_factura":"2026-04-01","fecha_vencimiento":"2026-05-01","fecha_pago":null,"comentario":""},{"id":"imp-4-33","mes":4,"tipo":"facturas","proveedor":"FARMAUCO,S.L.","importe":225.27,"nro_factura":"1591","fecha_factura":"2026-04-30","fecha_vencimiento":"2026-05-30","fecha_pago":null,"comentario":""},{"id":"imp-4-34","mes":4,"tipo":"facturas","proveedor":"FERRER INTER.S.A","importe":276.72,"nro_factura":"13274480","fecha_factura":"2026-04-07","fecha_vencimiento":"2026-06-07","fecha_pago":null,"comentario":""},{"id":"imp-4-35","mes":4,"tipo":"facturas","proveedor":"FERRER INTER.S.A","importe":6.59,"nro_factura":"13274479","fecha_factura":"2026-04-07","fecha_vencimiento":"2026-06-07","fecha_pago":null,"comentario":""},{"id":"imp-4-36","mes":4,"tipo":"facturas","proveedor":"FERRER INTER.S.A","importe":9.84,"nro_factura":"13275832","fecha_factura":"2026-04-10","fecha_vencimiento":"2026-06-10","fecha_pago":null,"comentario":""},{"id":"imp-4-37","mes":4,"tipo":"facturas","proveedor":"GSK","importe":762.11,"nro_factura":"6445466605","fecha_factura":"2026-04-10","fecha_vencimiento":"2026-09-09","fecha_pago":null,"comentario":""},{"id":"imp-4-38","mes":4,"tipo":"facturas","proveedor":"GSK","importe":-94.09,"nro_factura":"5395992858","fecha_factura":"2026-04-23","fecha_vencimiento":null,"fecha_pago":null,"comentario":"RAPPEL"},{"id":"imp-4-39","mes":4,"tipo":"facturas","proveedor":"IND.FARM.CANTABR","importe":-89.08,"nro_factura":"26008045","fecha_factura":"2026-04-06","fecha_vencimiento":null,"fecha_pago":null,"comentario":"PROMOCION"},{"id":"imp-4-40","mes":4,"tipo":"facturas","proveedor":"IGNASAN GESTION COMERCIAL","importe":214.67,"nro_factura":"2026-0139","fecha_factura":"2026-04-10","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-4-41","mes":4,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":467.53,"nro_factura":"914472555","fecha_factura":"2026-04-07","fecha_vencimiento":"2026-07-06","fecha_pago":null,"comentario":""},{"id":"imp-4-42","mes":4,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":217.22,"nro_factura":"914491825","fecha_factura":"2026-04-15","fecha_vencimiento":"2026-06-14","fecha_pago":null,"comentario":""},{"id":"imp-4-43","mes":4,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":236.5,"nro_factura":"914513023","fecha_factura":"2026-04-24","fecha_vencimiento":"2026-06-22","fecha_pago":null,"comentario":""},{"id":"imp-4-44","mes":4,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":-255.02,"nro_factura":"914512165","fecha_factura":"2026-04-24","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-4-45","mes":4,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":255.02,"nro_factura":"914510834","fecha_factura":"2026-04-23","fecha_vencimiento":"2026-06-22","fecha_pago":null,"comentario":""},{"id":"imp-4-46","mes":4,"tipo":"facturas","proveedor":"ISDIN S.A.","importe":98.94,"nro_factura":"914525634","fecha_factura":"2026-04-29","fecha_vencimiento":"2026-06-28","fecha_pago":null,"comentario":""},{"id":"imp-4-47","mes":4,"tipo":"facturas","proveedor":"Johnson-Johson","importe":15.9,"nro_factura":"5554213074","fecha_factura":"2026-04-10","fecha_vencimiento":"2026-06-09","fecha_pago":null,"comentario":""},{"id":"imp-4-48","mes":4,"tipo":"facturas","proveedor":"Johnson-Johson","importe":866.04,"nro_factura":"5554213075","fecha_factura":"2026-04-10","fecha_vencimiento":"2026-06-09","fecha_pago":null,"comentario":""},{"id":"imp-4-49","mes":4,"tipo":"facturas","proveedor":"Johnson-Johson","importe":1534.34,"nro_factura":"554209250","fecha_factura":"2026-03-25","fecha_vencimiento":"2026-05-24","fecha_pago":null,"comentario":""},{"id":"imp-4-50","mes":4,"tipo":"facturas","proveedor":"Johnson-Johson","importe":1030.29,"nro_factura":"5554215284","fecha_factura":"2026-04-17","fecha_vencimiento":"2026-06-16","fecha_pago":null,"comentario":""},{"id":"imp-4-51","mes":4,"tipo":"facturas","proveedor":"Johnson-Johson","importe":-31.22,"nro_factura":"7815432158","fecha_factura":"2026-04-20","fecha_vencimiento":"2026-06-19","fecha_pago":null,"comentario":"PRODUCTO"},{"id":"imp-4-52","mes":4,"tipo":"facturas","proveedor":"KERN","importe":756.94,"nro_factura":"9000591309","fecha_factura":"2026-04-29","fecha_vencimiento":"2026-05-29","fecha_pago":null,"comentario":""},{"id":"imp-4-53","mes":4,"tipo":"facturas","proveedor":"KERN","importe":26.44,"nro_factura":"9000591310","fecha_factura":"2026-04-29","fecha_vencimiento":"2026-05-29","fecha_pago":null,"comentario":""},{"id":"imp-4-54","mes":4,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":84.96,"nro_factura":"3450025254","fecha_factura":"2026-04-30","fecha_vencimiento":"2026-09-07","fecha_pago":null,"comentario":""},{"id":"imp-4-55","mes":4,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":-126.0,"nro_factura":"3461028345","fecha_factura":"2026-04-30","fecha_vencimiento":null,"fecha_pago":null,"comentario":"RECTF FACTURA"},{"id":"imp-4-56","mes":4,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":126.0,"nro_factura":"3401084480","fecha_factura":"2026-04-13","fecha_vencimiento":"2026-09-07","fecha_pago":null,"comentario":""},{"id":"imp-4-57","mes":4,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":71.86,"nro_factura":"3401089998","fecha_factura":"2026-04-20","fecha_vencimiento":"2026-09-07","fecha_pago":null,"comentario":""},{"id":"imp-4-58","mes":4,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":749.39,"nro_factura":"3401089999","fecha_factura":"2026-04-20","fecha_vencimiento":"2026-06-20","fecha_pago":null,"comentario":""},{"id":"imp-4-59","mes":4,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":273.2,"nro_factura":"3401097023","fecha_factura":"2026-04-28","fecha_vencimiento":"2026-09-07","fecha_pago":null,"comentario":""},{"id":"imp-4-60","mes":4,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":2188.01,"nro_factura":"3401097025","fecha_factura":"2026-04-28","fecha_vencimiento":"2026-06-28","fecha_pago":null,"comentario":""},{"id":"imp-4-61","mes":4,"tipo":"facturas","proveedor":"L OREAL (ROCHE POSAY)","importe":-95.37,"nro_factura":"3460149152","fecha_factura":"2026-04-01","fecha_vencimiento":"2026-04-09","fecha_pago":null,"comentario":"PRODUCTO"},{"id":"imp-4-62","mes":4,"tipo":"facturas","proveedor":"LOGISTA PHARMA (PROCTER-GAMBLE)","importe":782.4,"nro_factura":"5011555197","fecha_factura":"2026-04-10","fecha_vencimiento":"2026-06-09","fecha_pago":null,"comentario":""},{"id":"imp-4-63","mes":4,"tipo":"facturas","proveedor":"LOGISTA PHARMA (PROCTER-GAMBLE)","importe":27.59,"nro_factura":"5011564262","fecha_factura":"2026-04-24","fecha_vencimiento":"2026-06-23","fecha_pago":null,"comentario":""},{"id":"imp-4-64","mes":4,"tipo":"facturas","proveedor":"LOGISTA PHARMA (PROCTER-GAMBLE)","importe":477.11,"nro_factura":"5011566996","fecha_factura":"2026-04-29","fecha_vencimiento":"2026-06-28","fecha_pago":null,"comentario":""},{"id":"imp-4-65","mes":4,"tipo":"facturas","proveedor":"MEDI BAYREUTH ESP","importe":53.18,"nro_factura":"26016099","fecha_factura":"2026-04-30","fecha_vencimiento":"2026-05-30","fecha_pago":null,"comentario":""},{"id":"imp-4-66","mes":4,"tipo":"facturas","proveedor":"NUTRITION SANTE","importe":359.85,"nro_factura":"920791226","fecha_factura":"2026-04-23","fecha_vencimiento":"2026-06-22","fecha_pago":null,"comentario":""},{"id":"imp-4-67","mes":4,"tipo":"facturas","proveedor":"NUTRITION SANTE","importe":-80.67,"nro_factura":"930106572","fecha_factura":"2026-04-21","fecha_vencimiento":null,"fecha_pago":null,"comentario":"PROMOCION"},{"id":"imp-4-68","mes":4,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":245.51,"nro_factura":"SIF1437210","fecha_factura":"2026-04-10","fecha_vencimiento":"2026-06-09","fecha_pago":null,"comentario":""},{"id":"imp-4-69","mes":4,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":1212.41,"nro_factura":"SIF1445469","fecha_factura":"2026-04-27","fecha_vencimiento":"2026-06-26","fecha_pago":null,"comentario":""},{"id":"imp-4-70","mes":4,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":-70.08,"nro_factura":"SCN0270499","fecha_factura":"2026-04-14","fecha_vencimiento":"2026-06-13","fecha_pago":null,"comentario":"PROMOCION"},{"id":"imp-4-71","mes":4,"tipo":"facturas","proveedor":"PIERRE FABRE IBER","importe":-7.97,"nro_factura":"SCN0270653","fecha_factura":"2026-04-14","fecha_vencimiento":"2026-06-13","fecha_pago":null,"comentario":"PRODUCTO"},{"id":"imp-4-72","mes":4,"tipo":"facturas","proveedor":"PRANAROM","importe":296.19,"nro_factura":"FV26013294","fecha_factura":"2026-04-20","fecha_vencimiento":"2026-06-19","fecha_pago":null,"comentario":""},{"id":"imp-4-73","mes":4,"tipo":"facturas","proveedor":"PRANAROM","importe":98.13,"nro_factura":"FV26013607","fecha_factura":"2026-04-22","fecha_vencimiento":"2026-06-21","fecha_pago":null,"comentario":""},{"id":"imp-4-74","mes":4,"tipo":"facturas","proveedor":"PRIM","importe":47.8,"nro_factura":"100837056","fecha_factura":"2026-04-22","fecha_vencimiento":"2026-06-21","fecha_pago":null,"comentario":""},{"id":"imp-4-75","mes":4,"tipo":"facturas","proveedor":"PRIM","importe":578.88,"nro_factura":"100837057","fecha_factura":"2026-04-22","fecha_vencimiento":"2026-06-21","fecha_pago":null,"comentario":""},{"id":"imp-4-76","mes":4,"tipo":"facturas","proveedor":"QUIES","importe":345.95,"nro_factura":"2602676","fecha_factura":"2026-04-21","fecha_vencimiento":"2026-06-20","fecha_pago":null,"comentario":""},{"id":"imp-4-77","mes":4,"tipo":"facturas","proveedor":"RECKITT BENCKISER HEALTHCARE,S.A.","importe":302.36,"nro_factura":"2100735238","fecha_factura":"2026-04-24","fecha_vencimiento":"2026-06-18","fecha_pago":null,"comentario":""},{"id":"imp-4-78","mes":4,"tipo":"facturas","proveedor":"RECKITT BENCKISER HEALTHCARE,S.A.","importe":-159.78,"nro_factura":"220154890","fecha_factura":"2026-04-29","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-4-79","mes":4,"tipo":"facturas","proveedor":"SALVAT","importe":375.66,"nro_factura":"1900754060","fecha_factura":"2026-04-30","fecha_vencimiento":"2026-06-29","fecha_pago":null,"comentario":"AT"},{"id":"imp-4-80","mes":4,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":178.16,"nro_factura":"7061409079","fecha_factura":"2026-04-17","fecha_vencimiento":"2026-06-17","fecha_pago":null,"comentario":""},{"id":"imp-4-81","mes":4,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":170.79,"nro_factura":"7061409080","fecha_factura":"2026-04-17","fecha_vencimiento":"2026-06-17","fecha_pago":null,"comentario":""},{"id":"imp-4-82","mes":4,"tipo":"facturas","proveedor":"SANOFI AVENTIS","importe":110.58,"nro_factura":"7061409081","fecha_factura":"2026-04-17","fecha_vencimiento":"2026-06-17","fecha_pago":null,"comentario":""},{"id":"imp-4-83","mes":4,"tipo":"facturas","proveedor":"SUAVINEX,S.A.","importe":318.81,"nro_factura":"702620625","fecha_factura":"2026-04-02","fecha_vencimiento":"2026-06-02","fecha_pago":null,"comentario":""},{"id":"imp-4-84","mes":4,"tipo":"facturas","proveedor":"THEA","importe":507.54,"nro_factura":"...08085","fecha_factura":"2026-04-16","fecha_vencimiento":"2026-06-15","fecha_pago":null,"comentario":""},{"id":"imp-4-85","mes":4,"tipo":"facturas","proveedor":"UNINEED LIMITED","importe":299.9,"nro_factura":"...DUN1RI","fecha_factura":"2026-04-08","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-4-86","mes":4,"tipo":"facturas","proveedor":"VECTEM S.A","importe":280.33,"nro_factura":"FV261280","fecha_factura":"2026-04-14","fecha_vencimiento":"2026-05-14","fecha_pago":null,"comentario":""},{"id":"imp-4-87","mes":4,"tipo":"facturas","proveedor":"VITRY","importe":237.78,"nro_factura":"1292464","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-04-30","fecha_pago":null,"comentario":""},{"id":"imp-4-88","mes":4,"tipo":"facturas","proveedor":"VITRY","importe":499.34,"nro_factura":"1295545","fecha_factura":"2026-04-23","fecha_vencimiento":"2026-05-23","fecha_pago":null,"comentario":""},{"id":"imp-4-89","mes":4,"tipo":"facturas","proveedor":"WECARE","importe":94.65,"nro_factura":"M826002539","fecha_factura":"2026-04-27","fecha_vencimiento":"2026-05-27","fecha_pago":null,"comentario":""},{"id":"imp-4-90","mes":4,"tipo":"facturas","proveedor":"ZAMBON","importe":220.18,"nro_factura":"1026015206","fecha_factura":"2026-04-23","fecha_vencimiento":"2026-06-22","fecha_pago":null,"comentario":""},{"id":"imp-4-91","mes":4,"tipo":"facturas","proveedor":"ZAMBON","importe":444.86,"nro_factura":"1026012828","fecha_factura":"2026-04-07","fecha_vencimiento":"2026-06-07","fecha_pago":null,"comentario":""},{"id":"imp-4-92","mes":4,"tipo":"gastos","proveedor":"TELEFONICA","importe":200.51,"nro_factura":"...74498","fecha_factura":"2026-04-19","fecha_vencimiento":"2026-04-19","fecha_pago":null,"comentario":""},{"id":"imp-4-93","mes":4,"tipo":"gastos","proveedor":"TELEFONICA","importe":1.11,"nro_factura":"...76254","fecha_factura":"2026-03-01","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-4-94","mes":4,"tipo":"gastos","proveedor":"BD","importe":529.74,"nro_factura":"26/P06824","fecha_factura":"2026-04-01","fecha_vencimiento":"2026-04-01","fecha_pago":null,"comentario":""},{"id":"imp-4-95","mes":4,"tipo":"gastos","proveedor":"NATURGY","importe":466.43,"nro_factura":"...2274","fecha_factura":"2026-07-23","fecha_vencimiento":"2026-04-30","fecha_pago":null,"comentario":""},{"id":"imp-4-96","mes":4,"tipo":"gastos","proveedor":"ANA ROCIO MUÑOS RODRIGUEZ","importe":359.37,"nro_factura":"024/2026","fecha_factura":"2026-04-30","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-4-97","mes":4,"tipo":"gastos","proveedor":"PEREZ LLORCA","importe":885.37,"nro_factura":"26/2849","fecha_factura":"2026-04-28","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-4-98","mes":4,"tipo":"gastos","proveedor":"LUDA","importe":-712.97,"nro_factura":"GL1336/26","fecha_factura":"2026-02-27","fecha_vencimiento":"2026-03-27","fecha_pago":null,"comentario":""},{"id":"imp-4-99","mes":4,"tipo":"gastos","proveedor":"LUDA","importe":-545.81,"nro_factura":"GL1684/26","fecha_factura":"2026-03-31","fecha_vencimiento":"2026-02-28","fecha_pago":null,"comentario":""},{"id":"imp-4-100","mes":4,"tipo":"gastos","proveedor":"LUDA","importe":-68.75,"nro_factura":"GL66/26","fecha_factura":"2026-01-30","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-4-101","mes":4,"tipo":"gastos","proveedor":"LUDA","importe":-526.65,"nro_factura":"GL2798/26","fecha_factura":"2026-04-30","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-4-102","mes":4,"tipo":"gastos","proveedor":"LUDA","importe":23.53,"nro_factura":"SH5308/26","fecha_factura":"2026-04-30","fecha_vencimiento":null,"fecha_pago":null,"comentario":""},{"id":"imp-4-103","mes":4,"tipo":"gastos","proveedor":"MEDIFORM","importe":83.49,"nro_factura":"A179","fecha_factura":"2026-04-01","fecha_vencimiento":"2026-04-01","fecha_pago":null,"comentario":""},{"id":"imp-4-104","mes":4,"tipo":"gastos","proveedor":"MEDIFORM","importe":-24.2,"nro_factura":"A221","fecha_factura":"2026-04-01","fecha_vencimiento":"2026-04-01","fecha_pago":null,"comentario":""}];
+</script>
+
+<script>
+// ══════════════════════════════════════════
+//  CONSTANTES Y ESTADO
+// ══════════════════════════════════════════
+const MESES = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',
+               7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'};
+const HOY = new Date().toISOString().split('T')[0];
+const STORAGE_KEY = 'gf_v1';
+
+let db = [];
+let sortCol = 'fecha_vencimiento';
+let sortAsc = true;
+let editId = null;
+let pagoId = null;
+let importSource = null;
+let importPreview = [];
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+function init() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    db = JSON.parse(saved);
+  } else if (typeof SEED_DATA !== 'undefined') {
+    db = JSON.parse(JSON.stringify(SEED_DATA));
+    save();
+  }
+  recalcEstados();
+  populateMesSelects();
+  populateProvDl();
+  renderKPIs();
+  render();
+}
+
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
+
+function recalcEstados() {
+  db.forEach(r => {
+    if (r.fecha_pago) { r.estado = 'pagada'; return; }
+    if (!r.fecha_vencimiento) { r.estado = 'sinf'; return; }
+    r.estado = r.fecha_vencimiento < HOY ? 'vencida' : 'pendiente';
+  });
+}
+
+function populateMesSelects() {
+  const opts = Object.entries(MESES).map(([v,l]) =>
+    `<option value="${v}">${l} 2026</option>`).join('');
+  ['mn-mes','ed-mes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = opts;
+  });
+  // exp-mes has año completo + meses
+  const expEl = document.getElementById('exp-mes');
+  if (expEl) {
+    expEl.innerHTML = `<option value="0">&#x1F4C5; A&#xF1;o completo 2026 (una pesta&#xF1;a por mes)</option>` + opts;
+    expEl.value = document.getElementById('sel-mes').value;
+  }
+}
+
+function populateProvDl() {
+  const provs = [...new Set(db.map(r => r.proveedor))].sort();
+  const opts = provs.map(p => `<option value="${escH(p)}">`).join('');
+  ['prov-dl','prov-dl2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = opts;
+  });
+}
+
+// ══════════════════════════════════════════
+//  MES CHANGE
+// ══════════════════════════════════════════
+function onMesChange() {
+  recalcEstados();
+  renderKPIs();
+  render();
+}
+
+function getMes() { return parseInt(document.getElementById('sel-mes').value); }
+
+// ══════════════════════════════════════════
+//  KPIs
+// ══════════════════════════════════════════
+function renderKPIs() {
+  const mes = getMes();
+  const dm  = db.filter(r => r.mes === mes);
+  const fact = dm.filter(r => r.tipo === 'facturas');
+  const gast = dm.filter(r => r.tipo === 'gastos');
+  const vencidas   = dm.filter(r => r.estado === 'vencida');
+  const pendientes = dm.filter(r => r.estado === 'pendiente' || r.estado === 'vencida');
+  const pagadas    = dm.filter(r => r.estado === 'pagada');
+  const imp_fact   = fact.reduce((s,r) => s + r.importe, 0);
+  const imp_gast   = gast.reduce((s,r) => s + r.importe, 0);
+  const pend_imp   = pendientes.reduce((s,r) => s + r.importe, 0);
+
+  // Proveedores destacados
+  const DESTACADOS = ['COFARES','BIDAFARMA','COFAS'];
+  const destCards = DESTACADOS.map(p => {
+    const rows = fact.filter(r => r.proveedor.toUpperCase().includes(p));
+    const imp  = rows.reduce((s,r) => s + r.importe, 0);
+    return `<div class="kpi-prov">
+      <div class="kpi-prov-name">${p}</div>
+      <div class="kpi-prov-val">${fmtEur(imp)}</div>
+      <div class="kpi-prov-sub">${rows.length} factura${rows.length!==1?'s':''}</div>
+    </div>`;
+  }).join('');
+
+  // Top 5 resto laboratorios
+  const otrosMap = {};
+  fact.filter(r => !DESTACADOS.some(p => r.proveedor.toUpperCase().includes(p))).forEach(r => {
+    otrosMap[r.proveedor] = (otrosMap[r.proveedor] || 0) + r.importe;
+  });
+  const top5 = Object.entries(otrosMap).sort((a,b) => b[1]-a[1]).slice(0,5);
+  const top5Cards = top5.map(([prov, imp]) => `
+    <div class="kpi-prov">
+      <div class="kpi-prov-name" title="${escH(prov)}">${escH(prov)}</div>
+      <div class="kpi-prov-val">${fmtEur(imp)}</div>
+    </div>`).join('');
+
+  document.getElementById('kpi-bar').innerHTML = `
+    <div class="kpi-row kpi-row-top">
+      <div class="kpi">
+        <div class="kpi-label">Total Facturas</div>
+        <div class="kpi-val-big">${fmtEur(imp_fact)}</div>
+        <div class="kpi-count">${fact.length} factura${fact.length!==1?'s':''}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Total Gastos</div>
+        <div class="kpi-val-big">${fmtEur(imp_gast)}</div>
+        <div class="kpi-count">${gast.length} gasto${gast.length!==1?'s':''}</div>
+      </div>
+      <div class="kpi ${vencidas.length ? 'danger' : ''}">
+        <div class="kpi-label">Vencidas sin pagar</div>
+        <div class="kpi-val">${vencidas.length}</div>
+        <div class="kpi-sub">${fmtEur(vencidas.reduce((s,r)=>s+r.importe,0))}</div>
+      </div>
+      <div class="kpi ${pendientes.length ? 'warning' : 'ok'}">
+        <div class="kpi-label">Pendientes de pago</div>
+        <div class="kpi-val">${pendientes.length}</div>
+        <div class="kpi-sub">${fmtEur(pend_imp)}</div>
+      </div>
+      <div class="kpi ok">
+        <div class="kpi-label">Pagadas</div>
+        <div class="kpi-val">${pagadas.length}</div>
+        <div class="kpi-sub">${fmtEur(pagadas.reduce((s,r)=>s+r.importe,0))}</div>
+      </div>
+    </div>
+    <div>
+      <div class="kpi-section-label">Proveedores principales</div>
+      <div class="kpi-row kpi-row-provs">${destCards}</div>
+    </div>
+    ${top5.length ? `<div>
+      <div class="kpi-section-label">Top 5 laboratorios</div>
+      <div class="kpi-row kpi-row-provs">${top5Cards}</div>
+    </div>` : ''}`;
+}
+
+// ══════════════════════════════════════════
+//  TABLA
+// ══════════════════════════════════════════
+function getFiltered() {
+  const mes  = getMes();
+  const tipo = document.getElementById('f-tipo').value;
+  const est  = document.getElementById('f-estado').value;
+  const q    = document.getElementById('f-q').value.toLowerCase().trim();
+
+  return db.filter(r => {
+    if (r.mes !== mes) return false;
+    if (tipo && r.tipo !== tipo) return false;
+    if (est  && r.estado !== est) return false;
+    if (q && !(r.proveedor + ' ' + r.nro_factura).toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a, b) => {
+    let va = a[sortCol] ?? '', vb = b[sortCol] ?? '';
+    if (sortCol === 'importe') return sortAsc ? va - vb : vb - va;
+    return sortAsc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+  });
+}
+
+function setSort(col) {
+  if (sortCol === col) sortAsc = !sortAsc;
+  else { sortCol = col; sortAsc = true; }
+  // update header classes
+  document.querySelectorAll('thead th').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+    if (th.getAttribute('onclick') === `setSort('${col}')`)
+      th.classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
+  });
+  render();
+}
+
+function rowHtml(r) {
+  const negClass = r.importe < 0 ? 'neg' : 'pos';
+  const paidRow  = r.estado === 'pagada' ? 'pagada' : '';
+  return `<tr class="${paidRow}">
+    <td class="wrap">${escH(r.proveedor)}</td>
+    <td class="amount ${negClass}">${fmtEur(r.importe)}</td>
+    <td class="td-nro" title="${escH(r.nro_factura)}">${escH(r.nro_factura) || '&#x2014;'}</td>
+    <td class="num">${fmtFecha(r.fecha_factura)}</td>
+    <td class="num">${fmtFecha(r.fecha_vencimiento)}</td>
+    <td>${badgeEstado(r.estado)}</td>
+    <td class="num">${fmtFecha(r.fecha_pago)}</td>
+    <td class="wrap" style="font-size:12px;color:var(--muted);max-width:160px">${escH(r.comentario)}</td>
+    <td>
+      <div class="row-actions">
+        ${r.estado !== 'pagada' ? `<button class="btn btn-success btn-xs" title="Registrar pago" onclick="openPago('${r.id}')">&#x1F4B3;</button>` : ''}
+        <button class="btn btn-ghost btn-xs" title="Editar" onclick="openEdit('${r.id}')">&#x270F;&#xFE0F;</button>
+        <button class="btn btn-danger btn-xs" title="Eliminar" onclick="deleteRow('${r.id}')">&#x1F5D1;</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+function emptyRow(cols, msg) {
+  return `<tr><td colspan="${cols}"><div class="empty" style="padding:28px 20px"><div class="icon" style="font-size:28px">&#x1F4C2;</div><p>${msg}</p></div></td></tr>`;
+}
+
+function render() {
+  const rows = getFiltered();
+  const fact = rows.filter(r => r.tipo === 'facturas');
+  const gast = rows.filter(r => r.tipo === 'gastos');
+  const mes  = getMes();
+
+  document.getElementById('tbl-count').textContent =
+    `${rows.length} registro${rows.length !== 1 ? 's' : ''} · ${MESES[mes]} 2026`;
+
+  // Facturas
+  const fTipo = document.getElementById('f-tipo').value;
+  document.getElementById('section-facturas').style.display = fTipo === 'gastos' ? 'none' : '';
+  document.getElementById('count-facturas').textContent = `${fact.length} factura${fact.length !== 1 ? 's' : ''}`;
+  document.getElementById('body-facturas').innerHTML = fact.length
+    ? fact.map(rowHtml).join('')
+    : emptyRow(9, 'Sin facturas de proveedor este mes.');
+
+  // Gastos
+  document.getElementById('section-gastos').style.display = fTipo === 'facturas' ? 'none' : '';
+  document.getElementById('count-gastos').textContent = `${gast.length} gasto${gast.length !== 1 ? 's' : ''}`;
+  document.getElementById('body-gastos').innerHTML = gast.length
+    ? gast.map(rowHtml).join('')
+    : emptyRow(9, 'Sin gastos este mes.');
+}
+
+function clearFilters() {
+  ['f-tipo','f-estado'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-q').value = '';
+  render();
+}
+
+// ══════════════════════════════════════════
+//  MODAL PAGO
+// ══════════════════════════════════════════
+function openPago(id) {
+  pagoId = id;
+  const r = db.find(x => x.id === id);
+  document.getElementById('pago-desc').textContent =
+    `${r.proveedor} · ${fmtEur(r.importe)} · Nº ${r.nro_factura || '—'}`;
+  document.getElementById('pago-fecha').value = HOY;
+  document.getElementById('ov-pago').classList.add('open');
+}
+function closePago(e) {
+  if (e && e.target !== document.getElementById('ov-pago')) return;
+  document.getElementById('ov-pago').classList.remove('open');
+}
+function confirmPago() {
+  const fecha = document.getElementById('pago-fecha').value;
+  if (!fecha) return alert('Introduce la fecha de pago.');
+  const r = db.find(x => x.id === pagoId);
+  if (r) { r.fecha_pago = fecha; r.estado = 'pagada'; }
+  save(); recalcEstados(); renderKPIs(); render();
+  document.getElementById('ov-pago').classList.remove('open');
+  toast('Pago registrado ✓');
+}
+
+// ══════════════════════════════════════════
+//  MODAL EDITAR / NUEVA
+// ══════════════════════════════════════════
+function openNueva() {
+  editId = null;
+  document.getElementById('edit-title').textContent = 'Nueva Factura';
+  clearEditForm();
+  document.getElementById('ed-mes').value = getMes();
+  document.getElementById('ed-ffac').value = HOY;
+  document.getElementById('ov-edit').classList.add('open');
+}
+function openEdit(id) {
+  editId = id;
+  const r = db.find(x => x.id === id);
+  document.getElementById('edit-title').textContent = 'Editar Factura';
+  document.getElementById('ed-tipo').value  = r.tipo;
+  document.getElementById('ed-mes').value   = r.mes;
+  document.getElementById('ed-prov').value  = r.proveedor;
+  document.getElementById('ed-nro').value   = r.nro_factura;
+  document.getElementById('ed-imp').value   = r.importe;
+  document.getElementById('ed-ffac').value  = r.fecha_factura || '';
+  document.getElementById('ed-fvenc').value = r.fecha_vencimiento || '';
+  document.getElementById('ed-fpago').value = r.fecha_pago || '';
+  document.getElementById('ed-com').value   = r.comentario;
+  document.getElementById('ov-edit').classList.add('open');
+}
+function closeEdit(e) {
+  if (e && e.target !== document.getElementById('ov-edit')) return;
+  document.getElementById('ov-edit').classList.remove('open');
+}
+function clearEditForm() {
+  ['ed-prov','ed-nro','ed-imp','ed-ffac','ed-fvenc','ed-fpago','ed-com'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('ed-tipo').value = 'facturas';
+}
+function saveEdit() {
+  const prov = document.getElementById('ed-prov').value.trim();
+  const imp  = parseFloat(document.getElementById('ed-imp').value);
+  if (!prov) return alert('El proveedor es obligatorio.');
+  if (isNaN(imp)) return alert('El importe es obligatorio.');
+  const datos = {
+    tipo: document.getElementById('ed-tipo').value,
+    mes:  parseInt(document.getElementById('ed-mes').value),
+    proveedor: prov,
+    nro_factura: document.getElementById('ed-nro').value.trim(),
+    importe: imp,
+    fecha_factura:     document.getElementById('ed-ffac').value  || null,
+    fecha_vencimiento: document.getElementById('ed-fvenc').value || null,
+    fecha_pago:        document.getElementById('ed-fpago').value || null,
+    comentario: document.getElementById('ed-com').value.trim(),
+  };
+  if (editId) {
+    const idx = db.findIndex(r => r.id === editId);
+    db[idx] = { ...db[idx], ...datos };
+  } else {
+    datos.id = 'man-' + Date.now();
+    datos.fuente = 'manual';
+    db.push(datos);
+  }
+  save(); recalcEstados(); populateProvDl(); renderKPIs(); render();
+  document.getElementById('ov-edit').classList.remove('open');
+  toast(editId ? 'Factura actualizada ✓' : 'Factura añadida ✓');
+}
+function deleteRow(id) {
+  if (!confirm('¿Eliminar este registro?')) return;
+  db = db.filter(r => r.id !== id);
+  save(); renderKPIs(); render();
+  toast('Registro eliminado');
+}
+
+// ══════════════════════════════════════════
+//  MODAL IMPORTAR
+// ══════════════════════════════════════════
+function openImport() {
+  importSource = null;
+  importPreview = [];
+  showImpStep(1);
+  document.getElementById('imp-footer').innerHTML =
+    `<button class="btn btn-ghost" onclick="closeImport()">Cancelar</button>`;
+  document.getElementById('ov-import').classList.add('open');
+}
+function closeImport(e) {
+  if (e && e.target !== document.getElementById('ov-import')) return;
+  document.getElementById('ov-import').classList.remove('open');
+  document.getElementById('file-input').value = '';
+  document.getElementById('bida-text').value = '';
+}
+function showImpStep(n) {
+  ['imp-step1','imp-step2-file','imp-step2-text','imp-step2-manual','imp-step2-json','imp-step3']
+    .forEach(id => document.getElementById(id).style.display = 'none');
+  if (n === 1) document.getElementById('imp-step1').style.display = 'block';
+  if (n === '2f') document.getElementById('imp-step2-file').style.display = 'block';
+  if (n === '2t') document.getElementById('imp-step2-text').style.display = 'block';
+  if (n === '2m') document.getElementById('imp-step2-manual').style.display = 'block';
+  if (n === '2j') document.getElementById('imp-step2-json').style.display = 'block';
+  if (n === 3) document.getElementById('imp-step3').style.display = 'block';
+}
+
+function selectSource(src, el) {
+  importSource = src;
+  document.querySelectorAll('.import-source').forEach(e => e.classList.remove('selected'));
+  if (el) el.classList.add('selected');
+
+  if (src === 'cofares') {
+    document.getElementById('imp-title').textContent = 'Importar — Cofares';
+    showImpStep('2f');
+    const hint = document.getElementById('drop-hint');
+    if (hint) hint.textContent = 'Acepta el Excel (.xlsx) que descargas del portal de Cofares';
+    document.getElementById('imp-footer').innerHTML =
+      `<button class="btn btn-ghost" onclick="backToSource()">← Volver</button>`;
+  } else if (src === 'cofas') {
+    document.getElementById('imp-title').textContent = 'Importar — Cofas';
+    showImpStep('2f');
+    const hint = document.getElementById('drop-hint');
+    if (hint) hint.textContent = 'Acepta el archivo XLS que descargas del portal de Cofas';
+    document.getElementById('imp-footer').innerHTML =
+      `<button class="btn btn-ghost" onclick="backToSource()">← Volver</button>`;
+  } else if (src === 'bidafarma') {
+    document.getElementById('imp-title').textContent = 'Importar — Bidafarma';
+    showImpStep('2t');
+    document.getElementById('imp-footer').innerHTML =
+      `<button class="btn btn-ghost" onclick="backToSource()">← Volver</button>`;
+  } else if (src === 'manual') {
+    document.getElementById('imp-title').textContent = 'Entrada manual';
+    document.getElementById('mn-mes').value = getMes();
+    document.getElementById('mn-ffac').value = HOY;
+    showImpStep('2m');
+    document.getElementById('imp-footer').innerHTML =
+      `<button class="btn btn-ghost" onclick="backToSource()">&#x2190; Volver</button>
+       <button class="btn btn-primary" onclick="saveManual()">Guardar factura</button>`;
+  } else if (src === 'json') {
+    document.getElementById('imp-title').textContent = 'Importar JSON — IA';
+    document.getElementById('json-text').value = '';
+    showImpStep('2j');
+    document.getElementById('imp-footer').innerHTML =
+      `<button class="btn btn-ghost" onclick="backToSource()">&#x2190; Volver</button>`;
+  }
+}
+
+function backToSource() {
+  importSource = null;
+  importPreview = [];
+  document.getElementById('imp-title').textContent = 'Importar Facturas';
+  document.getElementById('file-input').value = '';
+  document.getElementById('bida-text').value = '';
+  showImpStep(1);
+  document.getElementById('imp-footer').innerHTML =
+    `<button class="btn btn-ghost" onclick="closeImport()">Cancelar</button>`;
+}
+
+// ── DRAG & DROP ──
+function onDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('drag'); }
+function onDragLeave(e) { document.getElementById('drop-zone').classList.remove('drag'); }
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+function onFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) processFile(file);
+}
+
+// ── PARSE COFARES ──
+function parseCofares(wb) {
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  const results = [];
+  // Find header row (contains 'Número' or 'F. factura')
+  let hdrIdx = -1;
+  for (let i = 0; i < rows.length; i++) {
+    if (rows[i].some(c => String(c).includes('Número') || String(c).includes('factura'))) {
+      hdrIdx = i; break;
+    }
+  }
+  if (hdrIdx < 0) return null;
+  const hdr = rows[hdrIdx].map(c => String(c).trim());
+  const iNum  = hdr.findIndex(h => h.includes('Número'));
+  const iFfac = hdr.findIndex(h => h.includes('F. factura') || h.includes('F.factura'));
+  const iFvenc= hdr.findIndex(h => h.includes('F.Vencimiento') || h.includes('Vencimiento'));
+  const iImp  = hdr.findIndex(h => h === 'Importe IVA' || h.includes('Importe'));
+  const iTipo = hdr.findIndex(h => h === 'Tipo');
+
+  for (let i = hdrIdx + 1; i < rows.length; i++) {
+    const row = rows[i];
+    const nro = String(row[iNum] ?? '').trim();
+    const imp = parseFloat(String(row[iImp] ?? '').replace(/\./g,'').replace(',','.'));
+    if (!nro || isNaN(imp) || imp === 0) continue;
+    results.push({
+      proveedor:         'COFARES',
+      nro_factura:       nro,
+      fecha_factura:     excelDateOrStr(row[iFfac]),
+      fecha_vencimiento: excelDateOrStr(row[iFvenc]),
+      importe:           imp,
+      tipo:              'facturas',
+      comentario:        String(row[iTipo] ?? '').trim(),
+    });
+  }
+  return results;
+}
+
+// ── PARSE COFAS ──
+function parseCofasHTML(text) {
+  // Cofas exports a real HTML file — parse it directly as HTML
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(text, 'text/html');
+  const rows = doc.querySelectorAll('table tr');
+  if (!rows.length) return null;
+
+  // Find column indices from header row (th elements)
+  const ths = doc.querySelectorAll('table thead th');
+  let iFfac=-1, iNro=-1, iImp=-1, iFvenc=-1;
+  ths.forEach((th, i) => {
+    const t = th.textContent.toLowerCase().replace(/\s+/g,' ').trim();
+    if (t.includes('fecha') && t.includes('factura')) iFfac = i;
+    else if (t.includes('factura') || t.includes('nº')) iNro = i;
+    else if (t.includes('importe')) iImp = i;
+    else if (t.includes('vencimiento')) iFvenc = i;
+  });
+
+  // Fallback fixed positions if header detection fails
+  // Cofas columns: Fecha factura(0) · Nº factura(1) · Importe(2) · Fecha vencimiento(3) · Nº vencimiento(4) · Fecha cobro(5)
+  if (iFfac < 0) iFfac = 0;
+  if (iNro  < 0) iNro  = 1;
+  if (iImp  < 0) iImp  = 2;
+  if (iFvenc< 0) iFvenc= 3;
+
+  const results = [];
+  const tdRows = doc.querySelectorAll('table tbody tr');
+  tdRows.forEach(tr => {
+    const tds = tr.querySelectorAll('td');
+    if (tds.length < 3) return;
+    const nro = tds[iNro]?.textContent.trim();
+    const impStr = tds[iImp]?.textContent.trim().replace(/\./g,'').replace(',','.');
+    const imp = parseFloat(impStr);
+    if (!nro || isNaN(imp)) return;
+    results.push({
+      proveedor:         'COFAS',
+      nro_factura:       nro,
+      fecha_factura:     dmyToISO(tds[iFfac]?.textContent.trim()),
+      fecha_vencimiento: dmyToISO(tds[iFvenc]?.textContent.trim()),
+      importe:           imp,
+      tipo:              'facturas',
+      comentario:        '',
+    });
+  });
+  return results.length ? results : null;
+}
+
+// dd/mm/yyyy -> yyyy-mm-dd
+function dmyToISO(s) {
+  if (!s) return null;
+  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return null;
+  return `${m[3]}-${m[2]}-${m[1]}`;
+}
+
+function processFile(file) {
+  const zone = document.getElementById('drop-zone');
+  zone.innerHTML = '<div class="icon">⏳</div><p>Procesando…</p>';
+
+  // Cofas is a real HTML file — read as text
+  if (importSource === 'cofas') {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const rows = parseCofasHTML(e.target.result);
+        if (!rows || rows.length === 0) {
+          zone.innerHTML = '<div class="icon">❌</div><p>No se reconoció el formato. ¿Es el archivo correcto?</p>';
+          return;
+        }
+        showPreview(rows);
+      } catch(err) {
+        zone.innerHTML = `<div class="icon">❌</div><p>Error al leer el archivo: ${err.message}</p>`;
+      }
+    };
+    reader.readAsText(file, 'utf-8');
+    return;
+  }
+
+  // Cofares: read as binary for XLSX
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array', cellDates: true });
+      let rows = null;
+      if (importSource === 'cofares') rows = parseCofares(wb);
+      if (!rows || rows.length === 0) {
+        zone.innerHTML = '<div class="icon">❌</div><p>No se reconoció el formato. ¿Es el archivo correcto?</p>';
+        return;
+      }
+      showPreview(rows);
+    } catch(err) {
+      zone.innerHTML = `<div class="icon">❌</div><p>Error al leer el archivo: ${err.message}</p>`;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── PARSE BIDAFARMA ──
+function parseBidafarma() {
+  const text = document.getElementById('bida-text').value.trim();
+  if (!text) return alert('Pega primero el texto del email.');
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const results = [];
+  // Format: NRO FECHA_FAC FECHA_VENC IMPORTE
+  // e.g.: 2404853305 30.04.2026 02.04.2026 18.548,19
+  const reDate = /\d{2}\.\d{2}\.\d{4}/g;
+  for (const line of lines) {
+    const dates = line.match(/\d{2}\.\d{2}\.\d{4}/g);
+    const parts = line.split(/\s+/);
+    if (!dates || dates.length < 2) continue;
+    // Last token should be amount
+    const lastToken = parts[parts.length - 1];
+    const imp = parseFloat(lastToken.replace(/\./g,'').replace(',','.'));
+    if (isNaN(imp)) continue;
+    const nro = parts[0];
+    if (!/^\d{7,12}$/.test(nro)) continue;
+    results.push({
+      proveedor:         'BIDAFARMA',
+      nro_factura:       nro,
+      fecha_factura:     dotDateToISO(dates[0]),
+      fecha_vencimiento: dotDateToISO(dates[1]),
+      importe:           imp,
+      tipo:              'facturas',
+      comentario:        '',
+    });
+  }
+  if (!results.length) return alert('No se encontraron facturas en el texto. Revisa el formato.');
+  showPreview(results);
+}
+
+// ── PREVIEW ──
+function isDuplicate(r) {
+  if (!r.nro_factura) return false;
+  return db.some(x =>
+    x.nro_factura === r.nro_factura &&
+    x.proveedor.toUpperCase() === r.proveedor.toUpperCase() &&
+    Math.round(x.importe * 100) === Math.round(r.importe * 100)
+  );
+}
+
+function showPreview(rows) {
+  const mes = getMes();
+  const nuevas      = rows.filter(r => !isDuplicate(r));
+  const descartadas = rows.filter(r => isDuplicate(r));
+  importPreview = nuevas;
+
+  document.getElementById('preview-count').textContent =
+    `Se van a importar ${nuevas.length} factura${nuevas.length!==1?'s':''}  para ${MESES[mes]} 2026`;
+
+  let warns = '';
+  if (descartadas.length) {
+    warns = `<div class="alert-strip" style="flex-direction:column;align-items:flex-start;gap:4px">
+      <strong>&#x26A0;&#xFE0F; ${descartadas.length} factura${descartadas.length>1?'s descartadas':'descartada'} por duplicado (mismo proveedor, nº y importe):</strong>
+      ${descartadas.map(r => `<span style="font-size:11px">&#x2022; ${escH(r.proveedor)} &mdash; ${escH(r.nro_factura)} &mdash; ${fmtEur(r.importe)}</span>`).join('')}
+    </div>`;
+  }
+  if (!nuevas.length) {
+    warns += `<div class="alert-strip" style="margin-top:8px">Todas las facturas del archivo ya existen en la base de datos.</div>`;
+  }
+  document.getElementById('imp-warnings').innerHTML = warns;
+
+  document.getElementById('preview-body').innerHTML = nuevas.map(r => `
+    <tr>
+      <td>${escH(r.proveedor)}</td>
+      <td style="font-size:11px">${escH(r.nro_factura)}</td>
+      <td>${fmtFecha(r.fecha_factura)}</td>
+      <td>${fmtFecha(r.fecha_vencimiento)}</td>
+      <td style="text-align:right;font-weight:600">${fmtEur(r.importe)}</td>
+    </tr>`).join('');
+
+  showImpStep(3);
+  const btnConfirm = nuevas.length
+    ? `<button class="btn btn-primary" onclick="confirmImport()">&#x2713; Confirmar importación</button>`
+    : '';
+  document.getElementById('imp-footer').innerHTML =
+    `<button class="btn btn-ghost" onclick="backToSource()">&#x2190; Volver</button>${btnConfirm}`;
+}
+
+function parseJSON() {
+  const raw = document.getElementById('json-text').value.trim();
+  if (!raw) return alert('Pega primero el JSON.');
+  let parsed;
+  try { parsed = JSON.parse(raw); }
+  catch(e) { return alert('El JSON no es v\u00e1lido. Revisa que no falten comas o llaves.\n\n' + e.message); }
+  if (!Array.isArray(parsed)) parsed = [parsed];
+
+  const rows = [];
+  const warnings = [];
+  parsed.forEach((r, i) => {
+    const row = {
+      proveedor:         String(r.proveedor || 'FALTA DATO').trim(),
+      nro_factura:       String(r.nro_factura || '').trim(),
+      fecha_factura:     (r.fecha_factura && r.fecha_factura !== 'FALTA DATO') ? r.fecha_factura : null,
+      fecha_vencimiento: (r.fecha_vencimiento && r.fecha_vencimiento !== 'FALTA DATO') ? r.fecha_vencimiento : null,
+      importe:           parseFloat(r.importe) || 0,
+      tipo:              r.tipo === 'gastos' ? 'gastos' : 'facturas',
+      comentario:        String(r.comentario || '').trim(),
+    };
+    const missing = [];
+    if (row.proveedor === 'FALTA DATO') missing.push('Proveedor');
+    if (!row.fecha_factura) missing.push('Fecha Factura');
+    if (!row.fecha_vencimiento) missing.push('Fecha Vencimiento');
+    if (!row.importe) missing.push('Importe');
+    if (missing.length) warnings.push(`Fila ${i+1} (${row.proveedor}): falta ${missing.join(', ')}`);
+    rows.push(row);
+  });
+
+  if (!rows.length) return alert('No se encontraron registros en el JSON.');
+  importPreview = rows;
+  importSource = 'json';
+
+  document.getElementById('preview-count').textContent =
+    `Se van a importar ${rows.length} factura${rows.length !== 1 ? 's' : ''} — mes derivado de fecha de factura`;
+
+  let warnHtml = '';
+  if (warnings.length) {
+    warnHtml = `<div class="alert-strip" style="flex-direction:column;align-items:flex-start;gap:4px">
+      <strong>&#x26A0;&#xFE0F; ${warnings.length} registro${warnings.length>1?'s tienen':'tiene'} campos incompletos:</strong>
+      ${warnings.map(w => `<span style="font-size:11px">&#x2022; ${escH(w)}</span>`).join('')}
+    </div>`;
+  }
+  document.getElementById('imp-warnings').innerHTML = warnHtml;
+
+  document.getElementById('preview-body').innerHTML = rows.map(r => {
+    const rowStyle = (!r.fecha_factura || !r.importe) ? 'background:#fef9ec' : '';
+    return `<tr style="${rowStyle}">
+      <td>${escH(r.proveedor)}</td>
+      <td style="font-size:11px">${escH(r.nro_factura) || '&#x2014;'}</td>
+      <td>${r.fecha_factura ? fmtFecha(r.fecha_factura) : '<span style="color:var(--red);font-weight:600">FALTA DATO</span>'}</td>
+      <td>${r.fecha_vencimiento ? fmtFecha(r.fecha_vencimiento) : '<span style="color:var(--amber);font-weight:600">FALTA DATO</span>'}</td>
+      <td style="text-align:right;font-weight:600">${r.importe ? fmtEur(r.importe) : '<span style="color:var(--red);font-weight:600">FALTA DATO</span>'}</td>
+    </tr>`;
+  }).join('');
+
+  showImpStep(3);
+  document.getElementById('imp-footer').innerHTML = `
+    <button class="btn btn-ghost" onclick="backToSource()">&#x2190; Volver</button>
+    <button class="btn btn-primary" onclick="confirmImport()">&#x2713; Confirmar importaci&#xF3;n</button>`;
+}
+
+function confirmImport() {
+  const mes = getMes();
+  let added = 0;
+  importPreview.forEach(r => {
+    let rowMes = mes;
+    if (importSource === 'json' && r.fecha_factura) {
+      rowMes = parseInt(r.fecha_factura.split('-')[1], 10);
+    }
+    db.push({
+      id: 'imp-' + Date.now() + '-' + Math.random().toString(36).slice(2,6),
+      mes: rowMes,
+      fuente: importSource,
+      estado: 'pendiente',
+      fecha_pago: null,
+      ...r,
+      importe: Math.round(r.importe * 100) / 100,
+    });
+    added++;
+  });
+  save(); recalcEstados(); populateProvDl(); renderKPIs(); render();
+  document.getElementById('ov-import').classList.remove('open');
+  toast(`${added} factura${added!==1?'s':''} importada${added!==1?'s':''} ✓`);
+}
+
+// ── MANUAL ──
+function saveManual() {
+  const prov = document.getElementById('mn-prov').value.trim();
+  const imp  = parseFloat(document.getElementById('mn-imp').value);
+  if (!prov) return alert('El proveedor es obligatorio.');
+  if (isNaN(imp)) return alert('El importe es obligatorio.');
+  db.push({
+    id: 'man-' + Date.now(),
+    mes: parseInt(document.getElementById('mn-mes').value),
+    tipo: document.getElementById('mn-tipo').value,
+    proveedor: prov,
+    nro_factura: document.getElementById('mn-nro').value.trim(),
+    importe: imp,
+    fecha_factura:     document.getElementById('mn-ffac').value || null,
+    fecha_vencimiento: null,
+    fecha_pago:        null,
+    comentario: document.getElementById('mn-com').value.trim(),
+    fuente: 'manual',
+    estado: 'pendiente',
+  });
+  save(); recalcEstados(); populateProvDl(); renderKPIs(); render();
+  document.getElementById('ov-import').classList.remove('open');
+  toast('Factura añadida ✓');
+}
+
+// ══════════════════════════════════════════
+//  MODAL EXPORTAR
+// ══════════════════════════════════════════
+function openExport() {
+  document.getElementById('exp-mes').value = getMes();
+  document.getElementById('ov-export').classList.add('open');
+}
+function closeExport(e) {
+  if (e && e.target !== document.getElementById('ov-export')) return;
+  document.getElementById('ov-export').classList.remove('open');
+}
+function doExport() {
+  const mes  = parseInt(document.getElementById('exp-mes').value);
+  const tipo = document.getElementById('exp-tipo').value;
+  const wb   = XLSX.utils.book_new();
+  if (mes === 0) {
+    // Año completo: una pestaña por mes
+    Object.entries(MESES).forEach(([m, label]) => {
+      const rows = db.filter(r => r.mes === parseInt(m) && (!tipo || r.tipo === tipo));
+      if (!rows.length) return;
+      buildSheet(wb, rows, label);
+    });
+    XLSX.writeFile(wb, `Facturas_Gestoria_2026.xlsx`);
+  } else {
+    const rows = db.filter(r => r.mes === mes && (!tipo || r.tipo === tipo));
+    buildSheet(wb, rows, MESES[mes]);
+    XLSX.writeFile(wb, `Facturas_Gestoria_${MESES[mes]}_2026.xlsx`);
+  }
+  document.getElementById('ov-export').classList.remove('open');
+  toast('Excel descargado ✓');
+}
+
+function exportFiltered() {
+  const wb = XLSX.utils.book_new();
+  buildSheet(wb, getFiltered(), MESES[getMes()]);
+  XLSX.writeFile(wb, `Facturas_${MESES[getMes()]}_2026_filtrado.xlsx`);
+  toast('Excel descargado ✓');
+}
+
+function buildSheet(wb, rows, sheetLabel) {
+  const fact = rows.filter(r => r.tipo === 'facturas');
+  const gast = rows.filter(r => r.tipo === 'gastos');
+
+  const COLS = ['Proveedor','Importe (€)','Nº Factura','Fecha Factura','Fecha Vencimiento','Estado','Fecha Pago','Comentarios'];
+  const COL_W = [32, 22, 14, 16, 14, 12, 14, 32];
+  const NC = COLS.length;
+
+  const bdr = (c) => ({ top:{style:'thin',color:{rgb:c}}, bottom:{style:'thin',color:{rgb:c}}, left:{style:'thin',color:{rgb:c}}, right:{style:'thin',color:{rgb:c}} });
+  const font = (bold, color, sz) => ({ bold, color:{rgb:color}, name:'Calibri', sz: sz||10 });
+
+  const S = {
+    T_TEAL: { fill:{fgColor:{rgb:'1e6060'}}, font:font(true,'FFFFFF',12), alignment:{horizontal:'left',vertical:'center'} },
+    T_PURP: { fill:{fgColor:{rgb:'4a2a70'}}, font:font(true,'FFFFFF',12), alignment:{horizontal:'left',vertical:'center'} },
+    H_TEAL: { fill:{fgColor:{rgb:'2a8080'}}, font:font(true,'FFFFFF',10), border:bdr('1e6060'), alignment:{horizontal:'center',vertical:'center'} },
+    H_PURP: { fill:{fgColor:{rgb:'6b3fa0'}}, font:font(true,'FFFFFF',10), border:bdr('4a2a70'), alignment:{horizontal:'center',vertical:'center'} },
+    TOT_T:  { fill:{fgColor:{rgb:'2a8080'}}, font:font(true,'FFFFFF',10), border:bdr('1e6060') },
+    TOT_TN: { fill:{fgColor:{rgb:'2a8080'}}, font:font(true,'FFFFFF',10), border:bdr('1e6060'), numFmt:'#,##0.00\ €', alignment:{horizontal:'right'} },
+    TOT_P:  { fill:{fgColor:{rgb:'6b3fa0'}}, font:font(true,'FFFFFF',10), border:bdr('4a2a70') },
+    TOT_PN: { fill:{fgColor:{rgb:'6b3fa0'}}, font:font(true,'FFFFFF',10), border:bdr('4a2a70'), numFmt:'#,##0.00\ €', alignment:{horizontal:'right'} },
+  };
+
+  function rowStyle(i, ci) {
+    const bg = i%2===0 ? 'FFFFFF' : 'EAF4F4';
+    const bd = i%2===0 ? 'd0e8e8' : 'c0dede';
+    if (ci === 1) return { fill:{fgColor:{rgb:bg}}, font:font(false,'182e2e',10), border:bdr(bd), numFmt:'#,##0.00\ €', alignment:{horizontal:'right'} };
+    if (ci === 2) return { fill:{fgColor:{rgb:bg}}, font:font(false,'6a9090',10), border:bdr(bd) };
+    return { fill:{fgColor:{rgb:bg}}, font:font(false,'182e2e',10), border:bdr(bd) };
+  }
+
+  const aoa = [];
+
+  function addBlock(title, data, teal) {
+    const tSt = teal ? S.T_TEAL : S.T_PURP;
+    const hSt = teal ? S.H_TEAL : S.H_PURP;
+    const totSt  = teal ? S.TOT_T  : S.TOT_P;
+    const totNum = teal ? S.TOT_TN : S.TOT_PN;
+
+    aoa.push({ vals:[title,...Array(NC-1).fill('')], st:Array(NC).fill(tSt), merge:true });
+    aoa.push({ vals:[...COLS], st:Array(NC).fill(hSt) });
+    const ESTADOS = {pagada:'Pagada',pendiente:'Pendiente',vencida:'Vencida',sinf:'Sin fecha'};
+    data.forEach((r, i) => {
+      aoa.push({ vals:[
+        r.proveedor||'',
+        r.nro_factura||'',
+        r.fecha_factura   ? r.fecha_factura.split('-').reverse().join('/')   : '',
+        r.fecha_vencimiento ? r.fecha_vencimiento.split('-').reverse().join('/') : '',
+        typeof r.importe==='number' ? r.importe : 0,
+        ESTADOS[r.estado]||'',
+        r.fecha_pago ? r.fecha_pago.split('-').reverse().join('/') : '',
+        r.comentario||''
+      ], st: Array.from({length:NC},(_,ci) => rowStyle(i,ci)), numCol:1 });
+    });
+    const total = data.reduce((s,r)=>s+(r.importe||0),0);
+    const totStyles = Array(NC).fill(totSt);
+    totStyles[1] = totNum;
+    aoa.push({ vals:['TOTAL','','','',total,'','',''], st:totStyles, numCol:4 });
+    aoa.push({ vals:Array(NC).fill(''), st:Array(NC).fill({}) });
+  }
+
+  if (fact.length) addBlock('FACTURAS DE PROVEEDOR — '+sheetLabel.toUpperCase()+' 2026', fact, true);
+  if (gast.length) addBlock('GASTOS — '+sheetLabel.toUpperCase()+' 2026', gast, false);
+
+  const wsData = aoa.map(r => r.vals);
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = COL_W.map(w => ({wch:w}));
+  ws['!rows'] = aoa.map(r => r.merge ? {hpt:20} : {hpt:16});
+  ws['!merges'] = [];
+
+  aoa.forEach((rowMeta, ri) => {
+    if (rowMeta.merge) ws['!merges'].push({s:{r:ri,c:0}, e:{r:ri,c:NC-1}});
+    rowMeta.vals.forEach((val, ci) => {
+      const ref = XLSX.utils.encode_cell({r:ri, c:ci});
+      if (!ws[ref]) ws[ref] = {v:'', t:'s'};
+      const cell = ws[ref];
+      cell.s = rowMeta.st[ci] || {};
+      if (ci === rowMeta.numCol && typeof val === 'number') { cell.t = 'n'; cell.v = val; }
+    });
+  });
+
+  XLSX.utils.book_append_sheet(wb, ws, sheetLabel.substring(0,31));
+}
+// ══════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════
+function fmtEur(n) {
+  if (n == null) return '—';
+  return new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2}).format(n);
+}
+function fmtFecha(d) {
+  if (!d) return '<span style="color:#ccc">—</span>';
+  const p = d.split('-');
+  return `${p[2]}/${p[1]}/${p[0]}`;
+}
+function escH(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function badgeEstado(e) {
+  const m = {
+    pagada:    ['b-pagada','✓ Pagada'],
+    pendiente: ['b-pendiente','⏳ Pendiente'],
+    vencida:   ['b-vencida','⚠ Vencida'],
+    sinf:      ['b-sinf','— Sin fecha'],
+  };
+  const [cls,lbl] = m[e] || ['b-sinf',e];
+  return `<span class="badge ${cls}">${lbl}</span>`;
+}
+function dotDateToISO(s) {
+  // "30.04.2026" → "2026-04-30"
+  if (!s) return null;
+  const [d,m,y] = s.split('.');
+  if (!d||!m||!y) return null;
+  return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+}
+function excelDateOrStr(val) {
+  if (!val) return null;
+  if (val instanceof Date) {
+    return val.toISOString().split('T')[0];
+  }
+  if (typeof val === 'number') {
+    // Excel serial date
+    const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+    return d.toISOString().split('T')[0];
+  }
+  // String "dd/mm/yyyy"
+  const s = String(val).trim();
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+    const [d,m,y] = s.split('/');
+    return `${y}-${m}-${d}`;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  return null;
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════
+//  START
+// ══════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
