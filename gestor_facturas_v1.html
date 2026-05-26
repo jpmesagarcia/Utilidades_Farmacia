@@ -1394,10 +1394,10 @@ function confirmImport() {
   const mes = getMes();
   let added = 0;
   importPreview.forEach(r => {
-    let rowMes = mes;
-    if (importSource === 'json' && r.fecha_factura) {
-      rowMes = parseInt(r.fecha_factura.split('-')[1], 10);
-    }
+    // Derive mes from fecha_factura for all sources
+    let rowMes = (r.fecha_factura)
+      ? parseInt(r.fecha_factura.split('-')[1], 10)
+      : mes;
     db.push({
       id: 'imp-' + Date.now() + '-' + Math.random().toString(36).slice(2,6),
       mes: rowMes,
