@@ -6,6 +6,7 @@
 <title>Gestor de Facturas · Farmacia del Globo Carretas</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root {
   --teal: #2a8080;
@@ -333,6 +334,15 @@ td.amount.pos{color:var(--text)}
     </div>
   </div>
   <div class="header-right">
+    <button class="btn btn-outline" id="btn-drive" onclick="loadFromDrive()" style="gap:8px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+        <path d="M12 2L2 19h6l4-7 4 7h6L12 2z" fill="#2a8080" opacity=".7"/>
+        <path d="M2 19h8l2-3.5L10 12 2 19z" fill="#1e6060"/>
+        <path d="M22 19h-8l-2-3.5 2-3.5 8 7z" fill="#3a9a9a"/>
+        <path d="M8 19h8l-4-7-4 7z" fill="#2a8080"/>
+      </svg>
+      Sheet Lucía
+    </button>
     <select class="mes-selector" id="sel-mes" onchange="onMesChange()">
       <option value="1">Enero 2026</option>
       <option value="2">Febrero 2026</option>
@@ -1394,10 +1404,10 @@ function confirmImport() {
   const mes = getMes();
   let added = 0;
   importPreview.forEach(r => {
-    // Derive mes from fecha_factura for all sources
-    let rowMes = (r.fecha_factura)
-      ? parseInt(r.fecha_factura.split('-')[1], 10)
-      : mes;
+    // lucia sets mes directly on each row; others derive from fecha_factura
+    let rowMes = r.mes
+      ? r.mes
+      : (r.fecha_factura ? parseInt(r.fecha_factura.split('-')[1], 10) : mes);
     db.push({
       id: 'imp-' + Date.now() + '-' + Math.random().toString(36).slice(2,6),
       mes: rowMes,
@@ -1617,6 +1627,132 @@ function toast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════
+//  GOOGLE DRIVE — SHEET LUCÍA
+// ══════════════════════════════════════════
+const DRIVE_CLIENT_ID = '418702665350-tjqll4c0fgpt59lvigaprcncok33o0hv.apps.googleusercontent.com';
+const LUCIA_SHEET_ID  = '1OBCSoJRyeutGbqYYoKs1ll7mETzv1jAGoM0z0LC_J-Y';
+const SHEET_MES_NAMES = {
+  'ENERO':1,'FEBRERO':2,'MARZO':3,'ABRIL':4,'MAYO':5,'JUNIO':6,
+  'JULIO':7,'AGOSTO':8,'SEPTIEMBRE':9,'OCTUBRE':10,'NOVIEMBRE':11,'DICIEMBRE':12
+};
+let driveToken = null;
+
+function loadFromDrive() {
+  const btn = document.getElementById('btn-drive');
+  if (driveToken) {
+    fetchLuciaSheet(driveToken);
+    return;
+  }
+  btn.textContent = 'Conectando…';
+  btn.disabled = true;
+
+  google.accounts.oauth2.initTokenClient({
+    client_id: DRIVE_CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/drive.readonly',
+    callback: (resp) => {
+      btn.textContent = 'Sheet Lucía';
+      btn.disabled = false;
+      if (resp.error) { toast('Error OAuth: ' + resp.error); return; }
+      driveToken = resp.access_token;
+      fetchLuciaSheet(driveToken);
+    }
+  }).requestAccessToken();
+}
+
+async function fetchLuciaSheet(token) {
+  const btn = document.getElementById('btn-drive');
+  btn.textContent = '⏳ Leyendo…';
+  btn.disabled = true;
+
+  try {
+    // Export the Google Sheet as xlsx
+    const url = `https://www.googleapis.com/drive/v3/files/${LUCIA_SHEET_ID}/export?mimeType=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`;
+    const resp = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+    if (!resp.ok) throw new Error(`Error ${resp.status}: ${resp.statusText}`);
+
+    const arrayBuffer = await resp.arrayBuffer();
+    const wb = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array', cellDates: true });
+
+    const rows = parseLuciaSheet(wb);
+    if (!rows || !rows.length) throw new Error('No se encontraron facturas en el Sheet');
+
+    // Show preview via importPreview mechanism
+    importSource = 'lucia';
+    showPreview(rows);
+    openImport(); // open modal at step 3
+    // Manually show step 3 since we're bypassing the normal flow
+    showImpStep(3);
+    document.getElementById('imp-title').textContent = 'Sheet Lucía — Vista previa';
+    document.getElementById('preview-count').textContent =
+      `Se van a importar ${rows.length} factura${rows.length!==1?'s':''} de ${[...new Set(rows.map(r=>MESES[r.mes]))].join(', ')}`;
+    document.getElementById('imp-footer').innerHTML = `
+      <button class="btn btn-ghost" onclick="closeImport()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmImport()">&#x2713; Confirmar importación</button>`;
+
+  } catch(e) {
+    toast('Error: ' + e.message);
+  } finally {
+    btn.textContent = 'Sheet Lucía';
+    btn.disabled = false;
+  }
+}
+
+function parseLuciaSheet(wb) {
+  const results = [];
+
+  wb.SheetNames.forEach(sheetName => {
+    const mesNum = SHEET_MES_NAMES[sheetName.toUpperCase().trim()];
+    if (!mesNum) return; // skip non-month sheets
+
+    const ws = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false });
+
+    let section = 'facturas';
+    rows.forEach(row => {
+      const b = String(row[1] || '').trim();
+      const bUp = b.toUpperCase();
+
+      // Detect section change
+      if (bUp.includes('GASTOS')) { section = 'gastos'; return; }
+      if (bUp === 'PROVEEDOR' || bUp.includes('FACTURAS')) return; // header rows
+
+      const proveedor = b;
+      const importeRaw = row[2];
+      const nro        = String(row[3] || '').trim();
+      const fFac       = row[4];
+      const fVenc      = row[5];
+      const fPago      = row[7];
+      const comentario = String(row[8] || '').trim();
+
+      if (!proveedor || !importeRaw) return;
+
+      // Parse importe — may come as string "1.234,56" or number
+      let importe;
+      if (typeof importeRaw === 'number') {
+        importe = importeRaw;
+      } else {
+        importe = parseFloat(String(importeRaw).replace(/\./g,'').replace(',','.'));
+      }
+      if (isNaN(importe)) return;
+
+      results.push({
+        proveedor,
+        nro_factura:       nro,
+        fecha_factura:     excelDateOrStr(fFac),
+        fecha_vencimiento: excelDateOrStr(fVenc),
+        fecha_pago:        excelDateOrStr(fPago),
+        importe,
+        tipo:              section,
+        comentario,
+        mes:               mesNum,
+      });
+    });
+  });
+
+  return results;
 }
 
 // ══════════════════════════════════════════
