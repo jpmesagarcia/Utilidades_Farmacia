@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestor de Tareas · Farmacia del Globo Carretas</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#2a8080;--teal-d:#1e6060;--teal-l:#3a9a9a;
+  --teal-pale:#eaf4f4;--teal-muted:#c8e6e6;
+  --bg:#f5f9f9;--surface:#ffffff;--border:#d8eaea;
+  --text:#182e2e;--muted:#6a9090;
+  --red:#c0392b;--red-pale:#fdf1f0;
+  --amber:#b45309;--amber-pale:#fef7ec;
+  --green:#1e7a5a;--green-pale:#eaf5f0;
+  --purple:#6b3fa0;--purple-pale:#f3eeff;
+  --radius:10px;
+  --shadow:0 1px 8px rgba(30,96,96,.08);
+  --shadow-md:0 4px 20px rgba(30,96,96,.12);
+  --shadow-lg:0 12px 40px rgba(30,96,96,.18);
+  --ft:'Jost',sans-serif;--fs:'Cormorant Garamond',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ft);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+
+/* HEADER */
+header{background:var(--surface);border-bottom:2px solid var(--teal);padding:0 32px;height:64px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;
+  box-shadow:var(--shadow-md)}
+.logo{display:flex;align-items:center;gap:14px}
+.logo svg{width:40px;height:44px;flex-shrink:0}
+.logo-text h1{font-family:var(--fs);font-size:22px;font-weight:600;color:var(--teal-d);line-height:1}
+.logo-text p{font-size:11px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-top:2px}
+.header-right{display:flex;align-items:center;gap:12px}
+.emp-badge{background:var(--teal-pale);color:var(--teal-d);border:1.5px solid var(--teal-muted);
+  border-radius:20px;padding:6px 16px;font-size:13px;font-weight:600;letter-spacing:.02em}
+.mes-badge{background:var(--bg);color:var(--muted);border:1px solid var(--border);
+  border-radius:20px;padding:6px 14px;font-size:12px}
+
+/* BTNS */
+.btn{font-family:var(--ft);font-size:13px;font-weight:500;padding:9px 20px;border-radius:8px;
+  border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+  transition:all .15s;letter-spacing:.02em;white-space:nowrap}
+.btn-primary{background:var(--teal);color:#fff}.btn-primary:hover{background:var(--teal-d)}
+.btn-outline{background:transparent;color:var(--teal-d);border:1.5px solid var(--teal-muted)}
+.btn-outline:hover{background:var(--teal-pale);border-color:var(--teal)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--teal-pale);color:var(--teal-d)}
+.btn-danger{background:var(--red-pale);color:var(--red);border:1px solid #f2c5c2}
+.btn-danger:hover{background:#fce8e6}
+.btn-success{background:var(--green);color:#fff}.btn-success:hover{background:#165c44}
+.btn-purple{background:var(--purple);color:#fff}.btn-purple:hover{background:#4a2a70}
+.btn-sm{padding:6px 13px;font-size:12px}
+.btn-xs{padding:4px 9px;font-size:11px;border-radius:6px}
+
+/* PROGRESS BAR */
+.progress-wrap{background:var(--surface);border-bottom:1px solid var(--border);padding:20px 32px}
+.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.progress-label{font-size:13px;font-weight:500;color:var(--teal-d)}
+.progress-count{font-family:var(--fs);font-size:18px;font-weight:600;color:var(--teal-d)}
+.progress-bar{height:8px;background:var(--teal-muted);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:var(--teal);border-radius:4px;transition:width .4s ease}
+
+/* CONTENT */
+.content{padding:24px 32px;max-width:900px}
+
+/* SECTION HEADERS */
+.section-title{font-family:var(--fs);font-size:20px;font-weight:600;color:var(--teal-d);
+  margin-bottom:16px;padding-bottom:8px;border-bottom:1.5px solid var(--teal-muted);
+  display:flex;align-items:center;gap:10px}
+.section-subtitle{font-size:11px;font-weight:400;color:var(--muted);font-family:var(--ft);
+  text-transform:uppercase;letter-spacing:.08em;margin-left:auto}
+
+/* TASK CARD */
+.task-group{margin-bottom:20px}
+.group-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--muted);padding:6px 0 8px;display:flex;align-items:center;gap:8px}
+.group-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.task-item{
+  display:flex;align-items:center;gap:12px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px 16px;margin-bottom:6px;cursor:pointer;
+  transition:all .15s;user-select:none;
+}
+.task-item:hover{border-color:var(--teal-muted);background:var(--teal-pale)}
+.task-item.done{opacity:.55;background:#f9fdfd}
+.task-item.done .task-name{text-decoration:line-through;color:var(--muted)}
+
+.task-check{
+  width:22px;height:22px;border-radius:50%;border:2px solid var(--teal-muted);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .15s;
+}
+.task-item.done .task-check{background:var(--teal);border-color:var(--teal)}
+.task-item.done .task-check::after{content:'✓';color:#fff;font-size:12px;font-weight:700}
+.task-name{font-size:13px;font-weight:500;flex:1;line-height:1.4}
+.task-area-badge{font-size:10px;padding:2px 8px;border-radius:12px;font-weight:600;
+  background:var(--teal-pale);color:var(--teal-d);flex-shrink:0}
+
+/* COLLAPSE TOGGLE */
+.collapse-toggle{
+  font-size:12px;color:var(--muted);cursor:pointer;padding:6px 0;
+  display:flex;align-items:center;gap:6px;background:none;border:none;
+  font-family:var(--ft);transition:color .15s;
+}
+.collapse-toggle:hover{color:var(--teal-d)}
+.collapse-toggle .arrow{transition:transform .2s;font-size:10px}
+.collapse-toggle.open .arrow{transform:rotate(90deg)}
+
+.collapsed{display:none}
+
+/* TABS (admin) */
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 32px;display:flex;gap:0}
+.tab{font-family:var(--ft);font-size:13px;font-weight:500;padding:16px 20px;
+  border:none;background:none;cursor:pointer;color:var(--muted);
+  border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.tab:hover{color:var(--teal-d)}
+.tab.active{color:var(--teal-d);border-bottom-color:var(--teal);font-weight:600}
+
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* KPI CARDS (admin) */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;
+  margin-bottom:24px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 20px;box-shadow:var(--shadow)}
+.kpi-card .emp-name{font-family:var(--fs);font-size:18px;font-weight:600;color:var(--teal-d);
+  margin-bottom:8px}
+.kpi-card .kpi-prog{font-size:12px;color:var(--muted);margin-bottom:8px}
+.kpi-card .mini-bar{height:6px;background:var(--teal-muted);border-radius:3px;overflow:hidden;
+  margin-bottom:10px}
+.kpi-card .mini-fill{height:100%;background:var(--teal);border-radius:3px;transition:width .3s}
+.kpi-card .pending-count{font-size:11px;color:var(--amber);font-weight:600}
+.kpi-card.all-done .emp-name{color:var(--green)}
+.kpi-card.all-done .mini-fill{background:var(--green)}
+.kpi-card.all-done .pending-count{color:var(--green)}
+
+/* EMPLOYEE DETAIL DROPDOWN */
+.emp-detail{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow)}
+.emp-detail-header{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;cursor:pointer;background:var(--teal-pale);transition:background .15s}
+.emp-detail-header:hover{background:var(--teal-muted)}
+.emp-detail-header .name{font-family:var(--fs);font-size:17px;font-weight:600;color:var(--teal-d)}
+.emp-detail-header .prog-text{font-size:12px;color:var(--muted)}
+.emp-detail-body{padding:16px 18px;display:none;border-top:1px solid var(--border)}
+.emp-detail-body.open{display:block}
+
+/* HISTORIAL TABLE */
+.hist-table-wrap{overflow-x:auto}
+.hist-table{width:100%;border-collapse:collapse}
+.hist-table th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--muted);padding:10px 14px;background:var(--teal-pale);border-bottom:1px solid var(--border);
+  white-space:nowrap;text-align:center}
+.hist-table th:first-child{text-align:left}
+.hist-table td{padding:10px 14px;font-size:13px;border-bottom:1px solid #eef5f5;text-align:center}
+.hist-table td:first-child{font-weight:600;text-align:left;color:var(--teal-d)}
+.hist-table tr:last-child td{border-bottom:none}
+.hist-table tr:hover td{background:#f3fafa}
+.score-good{color:var(--green);font-weight:600}
+.score-mid{color:var(--amber);font-weight:600}
+.score-bad{color:var(--red);font-weight:600}
+
+/* CRUD ADMIN */
+.admin-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  margin-bottom:20px;overflow:hidden;box-shadow:var(--shadow)}
+.admin-section-header{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--border);background:var(--teal-pale)}
+.admin-section-header h3{font-family:var(--fs);font-size:17px;font-weight:600;color:var(--teal-d)}
+.admin-list{padding:12px 18px}
+.admin-item{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;border-radius:8px;margin-bottom:4px;gap:10px;
+  background:var(--bg);border:1px solid var(--border)}
+.admin-item:last-child{margin-bottom:0}
+.admin-item .item-text{font-size:13px;flex:1}
+.admin-item .item-sub{font-size:11px;color:var(--muted)}
+.admin-item-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-row.full{grid-template-columns:1fr}
+.form-row.three{grid-template-columns:1fr 1fr 1fr}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.fg input,.fg select,.fg textarea{
+  font-family:var(--ft);font-size:13px;border:1px solid var(--border);border-radius:7px;
+  padding:9px 12px;background:var(--bg);color:var(--text);outline:none;transition:border .15s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--teal);background:#fff}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(10,28,28,.5);z-index:500;
+  align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow-lg);
+  width:100%;max-width:520px;max-height:90vh;overflow-y:auto;
+  animation:slide-up .2s ease}
+@keyframes slide-up{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{padding:22px 26px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between}
+.modal-header h2{font-family:var(--fs);font-size:22px;font-weight:600;color:var(--teal-d)}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);
+  padding:4px 8px;border-radius:6px;line-height:1}
+.modal-close:hover{background:var(--teal-pale);color:var(--teal-d)}
+.modal-body{padding:20px 26px}
+.modal-footer{padding:12px 26px 22px;display:flex;gap:10px;justify-content:flex-end}
+
+/* TOAST */
+#toast{position:fixed;bottom:28px;right:28px;z-index:9999;background:var(--teal-d);
+  color:#fff;padding:12px 22px;border-radius:10px;font-size:13px;font-weight:500;
+  box-shadow:var(--shadow-lg);opacity:0;transform:translateY(10px);
+  transition:all .25s;pointer-events:none}
+#toast.show{opacity:1;transform:translateY(0)}
+
+/* LANDING (no user) */
+.landing{padding:60px 32px;text-align:center}
+.landing h2{font-family:var(--fs);font-size:36px;font-weight:600;color:var(--teal-d);margin-bottom:12px}
+.landing p{font-size:15px;color:var(--muted);margin-bottom:36px}
+.emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:14px;max-width:700px;margin:0 auto 40px}
+.emp-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:22px 16px;cursor:pointer;transition:all .15s;text-align:center}
+.emp-card:hover{border-color:var(--teal);background:var(--teal-pale);transform:translateY(-2px);
+  box-shadow:var(--shadow-md)}
+.emp-card .emp-avatar{width:48px;height:48px;border-radius:50%;background:var(--teal-pale);
+  border:2px solid var(--teal-muted);display:flex;align-items:center;justify-content:center;
+  font-family:var(--fs);font-size:22px;font-weight:600;color:var(--teal-d);margin:0 auto 10px}
+.emp-card .emp-card-name{font-weight:600;font-size:14px;color:var(--teal-d)}
+.admin-link{font-size:13px;color:var(--muted);margin-top:8px}
+.admin-link a{color:var(--teal);text-decoration:none;font-weight:500}
+.admin-link a:hover{text-decoration:underline}
+
+/* LOADING */
+.loading{display:flex;align-items:center;justify-content:center;gap:12px;
+  padding:60px;color:var(--muted);font-size:14px}
+.spinner{width:24px;height:24px;border:2px solid var(--teal-muted);
+  border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* AUTH (admin login) */
+.auth-panel{padding:60px 32px;text-align:center;max-width:400px;margin:0 auto}
+.auth-panel h2{font-family:var(--fs);font-size:28px;font-weight:600;color:var(--teal-d);margin-bottom:8px}
+.auth-panel p{font-size:13px;color:var(--muted);margin-bottom:28px}
+
+/* ALERT */
+.alert{display:flex;align-items:center;gap:10px;border-radius:8px;padding:10px 16px;
+  margin-bottom:16px;font-size:13px}
+.alert-warning{background:var(--amber-pale);border:1px solid #f8dfa8;color:var(--amber)}
+.alert-info{background:var(--teal-pale);border:1px solid var(--teal-muted);color:var(--teal-d)}
+
+/* CLOSE MONTH PANEL */
+.close-month-panel{background:var(--red-pale);border:1px solid #f2c5c2;border-radius:var(--radius);
+  padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between}
+.close-month-panel p{font-size:13px;color:var(--red);font-weight:500}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--teal-muted);border-radius:3px}
+
+@media(max-width:600px){
+  header{padding:0 16px}
+  .content{padding:16px}
+  .progress-wrap{padding:16px}
+  .form-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 60 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="30" cy="32" rx="24" ry="28" fill="#eaf4f4" stroke="#2a8080" stroke-width="1.5"/>
+      <path d="M8 28 Q30 36 52 28" stroke="#2a8080" stroke-width="1.5" fill="none"/>
+      <path d="M10 20 Q30 28 50 20" stroke="#3a9a9a" stroke-width="1.2" fill="none"/>
+      <path d="M7 35 Q30 44 53 35" stroke="#1e6060" stroke-width="1.2" fill="none"/>
+      <path d="M13 43 Q30 50 47 43" stroke="#2a8080" stroke-width="1" fill="none"/>
+      <rect x="24" y="57" width="12" height="6" rx="2" fill="#2a8080"/>
+      <path d="M26 63 L22 70 M34 63 L38 70" stroke="#2a8080" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <div class="logo-text">
+      <h1>Gestor de Tareas</h1>
+      <p>Farmacia del Globo Carretas</p>
+    </div>
+  </div>
+  <div class="header-right" id="header-right"></div>
+</header>
+
+<!-- MAIN -->
+<div id="app"></div>
+
+<!-- MODAL -->
+<div class="overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 id="modal-title">Editar</h2>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- GOOGLE IDENTITY -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<script>
+// ════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════
+const CLIENT_ID  = '418702665350-tjqll4c0fgpt59lvigaprcncok33o0hv';
+const FOLDER_ID  = '1sN3FoV1T6JnbiRlp3jXVZdmlCRVIdX_0';
+const FILE_NAME  = 'tareas_farmacia.json';
+const SCOPES     = 'https://www.googleapis.com/auth/drive.file';
+
+// ════════════════════════════════════════════
+//  DEFAULT DATA
+// ════════════════════════════════════════════
+const DEFAULT_DATA = {
+  empleadas:[
+    {id:"monica",nombre:"Mónica"},
+    {id:"elena",nombre:"Elena"},
+    {id:"ana",nombre:"Ana"},
+    {id:"raquel",nombre:"Raquel"},
+    {id:"cristina",nombre:"Cristina"},
+    {id:"nerea",nombre:"Nerea"},
+    {id:"alicia",nombre:"Alicia"}
+  ],
+  categorias:[
+    {id:"cat_1",nombre:"Dietoterápicos",responsable_id:"monica"},
+    {id:"cat_2",nombre:"Efectos y Accesorios",responsable_id:"monica"},
+    {id:"cat_3",nombre:"Especialidades",responsable_id:"monica"},
+    {id:"cat_4",nombre:"Especialidades >143,04€",responsable_id:"monica"},
+    {id:"cat_5",nombre:"Fórmulas",responsable_id:"monica"},
+    {id:"cat_6",nombre:"Genéricos",responsable_id:"monica"},
+    {id:"cat_7",nombre:"Vacunas",responsable_id:"monica"},
+    {id:"cat_8",nombre:"Veterinaria",responsable_id:"monica"},
+    {id:"cat_9",nombre:"Antiparasitarios/Repelentes",responsable_id:"nerea"},
+    {id:"cat_10",nombre:"EFPs",responsable_id:"nerea"},
+    {id:"cat_11",nombre:"Línea Bucal",responsable_id:"nerea"},
+    {id:"cat_12",nombre:"Preservativos",responsable_id:"nerea"},
+    {id:"cat_13",nombre:"Dermofarmacia",responsable_id:"ana"},
+    {id:"cat_14",nombre:"Anticelulíticos/Antiestrías",responsable_id:"raquel"},
+    {id:"cat_15",nombre:"Homeopatía",responsable_id:"raquel"},
+    {id:"cat_16",nombre:"Ortopedia",responsable_id:"raquel"},
+    {id:"cat_17",nombre:"Dietética Alimentaria",responsable_id:"cristina"},
+    {id:"cat_18",nombre:"Dietética Infantil",responsable_id:"cristina"},
+    {id:"cat_19",nombre:"Fitoterapia",responsable_id:"cristina"},
+    {id:"cat_20",nombre:"Línea Infantil",responsable_id:"cristina"},
+    {id:"cat_21",nombre:"Nutrición Adelgazar",responsable_id:"cristina"},
+    {id:"cat_22",nombre:"Botiquín",responsable_id:"elena"},
+    {id:"cat_23",nombre:"COVID-19",responsable_id:"elena"},
+    {id:"cat_24",nombre:"Línea Capilar",responsable_id:"elena"},
+    {id:"cat_25",nombre:"Línea Corporal",responsable_id:"elena"},
+    {id:"cat_26",nombre:"Línea Íntima",responsable_id:"elena"},
+    {id:"cat_27",nombre:"Manos y Labios",responsable_id:"elena"},
+    {id:"cat_28",nombre:"Óptica",responsable_id:"elena"},
+    {id:"cat_29",nombre:"Podología",responsable_id:"elena"},
+    {id:"cat_30",nombre:"Solares",responsable_id:"elena"}
+  ],
+  tareas_globales:[
+    {id:"tg_1",nombre:"Medición de objetivos y comunicación al equipo",tipo:"mensual",area:"Gerencia",empleada_id:null},
+    {id:"tg_2",nombre:"Revisar la facturación a principio de mes",tipo:"mensual",area:"Administración",empleada_id:"monica"},
+    {id:"tg_3",nombre:"Cambio e ingresos bancarios",tipo:"mensual",area:"Administración",empleada_id:"elena"},
+    {id:"tg_4",nombre:"Revisión de abonos y devoluciones (caducados, Bidafarma)",tipo:"mensual",area:"Administración",empleada_id:"cristina"},
+    {id:"tg_5",nombre:"Facturación del seguro (hacer recetas)",tipo:"mensual",area:"Administración",empleada_id:"monica"},
+    {id:"tg_6",nombre:"Revisar albaranes y cuadrarlos con facturas",tipo:"mensual",area:"Administración",empleada_id:"nerea"},
+    {id:"tg_7",nombre:"Facturación de albaranes",tipo:"mensual",area:"Administración",empleada_id:"nerea"},
+    {id:"tg_8",nombre:"Control de albaranes cooperativas",tipo:"mensual",area:"Administración",empleada_id:"nerea"},
+    {id:"tg_9",nombre:"Copia de seguridad diaria y de versión",tipo:"diaria",area:"Administración",empleada_id:"nerea"},
+    {id:"tg_10",nombre:"Llamadas de aviso y recordatorio de encargos",tipo:"diaria",area:"Compras",empleada_id:"cristina"},
+    {id:"tg_11",nombre:"Revisar encargos retrasados",tipo:"diaria",area:"Compras",empleada_id:"cristina"},
+    {id:"tg_12",nombre:"Devolución de encargos no recogidos (a los 7 días)",tipo:"diaria",area:"Compras",empleada_id:"cristina"},
+    {id:"tg_13",nombre:"Devoluciones diarias (duplicidades…)",tipo:"diaria",area:"Compras",empleada_id:"cristina"},
+    {id:"tg_14",nombre:"Realizar pedido de fungibles (lunes)",tipo:"mensual",area:"Compras",empleada_id:"elena"},
+    {id:"tg_15",nombre:"Mantener ordenado y limpio el almacén",tipo:"diaria",area:"Almacén",empleada_id:"raquel"},
+    {id:"tg_16",nombre:"Recepción y colocación de pedidos mayoristas",tipo:"diaria",area:"Almacén",empleada_id:"cristina"},
+    {id:"tg_17",nombre:"Seguimiento de stock máx. y mín.",tipo:"mensual",area:"Almacén",empleada_id:"raquel"},
+    {id:"tg_18",nombre:"Revisión de stock negativos",tipo:"mensual",area:"Almacén",empleada_id:"cristina"},
+    {id:"tg_19",nombre:"Control de existencias mínimas",tipo:"mensual",area:"Almacén",empleada_id:"cristina"},
+    {id:"tg_20",nombre:"Apuntar errores de stock",tipo:"diaria",area:"Almacén",empleada_id:"cristina"},
+    {id:"tg_21",nombre:"Listar productos sin movimiento",tipo:"mensual",area:"Almacén",empleada_id:"cristina"},
+    {id:"tg_22",nombre:"Elaborar listado precios mayores de 100€",tipo:"mensual",area:"Almacén",empleada_id:"cristina"},
+    {id:"tg_23",nombre:"Elaborar listado precios mayores de 600€",tipo:"mensual",area:"Almacén",empleada_id:"cristina"},
+    {id:"tg_24",nombre:"Elaborar listado PMC cero",tipo:"mensual",area:"Almacén",empleada_id:"cristina"},
+    {id:"tg_25",nombre:"Elaborar listado PUC cero",tipo:"mensual",area:"Almacén",empleada_id:"cristina"},
+    {id:"tg_26",nombre:"Inspección y devolución caducidades",tipo:"mensual",area:"Almacén",empleada_id:"cristina"},
+    {id:"tg_27",nombre:"Control de caducidades mensuales en parafarmacia",tipo:"mensual",area:"Almacén",empleada_id:"raquel"},
+    {id:"tg_28",nombre:"Control de caducidades en 6 meses",tipo:"mensual",area:"Almacén",empleada_id:"ana"},
+    {id:"tg_29",nombre:"Dar salida a caducidades de pedidos directos",tipo:"mensual",area:"Almacén",empleada_id:"ana"},
+    {id:"tg_30",nombre:"Registro de faltas",tipo:"diaria",area:"Almacén",empleada_id:"ana"},
+    {id:"tg_31",nombre:"Controlar desabastecimientos",tipo:"mensual",area:"Almacén",empleada_id:"raquel"},
+    {id:"tg_32",nombre:"Revisar stock robot (sábado mañana)",tipo:"mensual",area:"Almacén",empleada_id:null},
+    {id:"tg_33",nombre:"Impartir formaciones (primera semana del mes)",tipo:"mensual",area:"Formación",empleada_id:"monica"},
+    {id:"tg_34",nombre:"Control de asistencia a cursos",tipo:"mensual",area:"Formación",empleada_id:"monica"},
+    {id:"tg_35",nombre:"Apertura y cierre de la farmacia (protocolo)",tipo:"diaria",area:"Rutina diaria",empleada_id:"raquel"},
+    {id:"tg_36",nombre:"Encendido y apagado de luces",tipo:"diaria",area:"Rutina diaria",empleada_id:"raquel"},
+    {id:"tg_37",nombre:"A/C, luz, bombillas",tipo:"diaria",area:"Rutina diaria",empleada_id:"nerea"},
+    {id:"tg_38",nombre:"Comprobar temperatura de la nevera",tipo:"diaria",area:"Rutina diaria",empleada_id:"raquel"},
+    {id:"tg_39",nombre:"Disponer de cambio efectivo",tipo:"diaria",area:"Rutina diaria",empleada_id:"raquel"},
+    {id:"tg_40",nombre:"Totalizar los datáfonos",tipo:"diaria",area:"Rutina diaria",empleada_id:"raquel"},
+    {id:"tg_41",nombre:"Ordenar y limpiar los mostradores",tipo:"diaria",area:"Rutina diaria",empleada_id:"raquel"},
+    {id:"tg_42",nombre:"Revisar web de Luda (pedidos nuevos y encargos)",tipo:"diaria",area:"Rutina diaria",empleada_id:"monica"},
+    {id:"tg_43",nombre:"Preparar pedidos de Luda (Glovo/Carrefour)",tipo:"diaria",area:"Rutina diaria",empleada_id:"monica"},
+    {id:"tg_44",nombre:"Reposición de fungibles (papelería, baño…)",tipo:"diaria",area:"Rutina diaria",empleada_id:"raquel"},
+    {id:"tg_45",nombre:"Revisar y vaciar bolsas, papeleras y SIGRE",tipo:"diaria",area:"Rutina diaria",empleada_id:"raquel"},
+    {id:"tg_46",nombre:"Tirar los cartones",tipo:"diaria",area:"Rutina diaria",empleada_id:"raquel"},
+    {id:"tg_47",nombre:"Revisar y contestar correo de la farmacia",tipo:"diaria",area:"Comunicación",empleada_id:"monica"},
+    {id:"tg_48",nombre:"Mantenimiento WhatsApp (comunicación exterior/interior)",tipo:"diaria",area:"Comunicación",empleada_id:"monica"},
+    {id:"tg_49",nombre:"Planificación de campañas, promos y escaparates",tipo:"mensual",area:"Marketing",empleada_id:"elena"},
+    {id:"tg_50",nombre:"Actualizar carteles de promociones",tipo:"mensual",area:"Marketing",empleada_id:"elena"},
+    {id:"tg_51",nombre:"Petición y distribución de muestras y folletos",tipo:"mensual",area:"Marketing",empleada_id:"elena"},
+    {id:"tg_52",nombre:"Revisión de muestras: ordenar, reponer y avisar si faltan",tipo:"mensual",area:"Marketing",empleada_id:"elena"},
+    {id:"tg_53",nombre:"Implantación del merchandising según calendario",tipo:"mensual",area:"Marketing",empleada_id:"elena"},
+    {id:"tg_54",nombre:"Revisar y corregir clientes dobles",tipo:"mensual",area:"Fidelidad",empleada_id:"nerea"},
+    {id:"tg_55",nombre:"Realizar comunicaciones del sistema de fidelización",tipo:"mensual",area:"Fidelidad",empleada_id:"nerea"},
+    {id:"tg_56",nombre:"Rellenar tarjetas de fidelidad",tipo:"diaria",area:"Fidelidad",empleada_id:"nerea"},
+    {id:"tg_57",nombre:"Repaso y sellado de recetas",tipo:"diaria",area:"Dispensación",empleada_id:"monica"},
+    {id:"tg_58",nombre:"Cerrar entregas SOE",tipo:"mensual",area:"Dispensación",empleada_id:"monica"},
+    {id:"tg_59",nombre:"Llevar correcto uso de estupefacientes y ECM",tipo:"mensual",area:"Dispensación",empleada_id:"monica"},
+    {id:"tg_60",nombre:"Informe anual de estupefacientes",tipo:"mensual",area:"Dispensación",empleada_id:"monica"},
+    {id:"tg_61",nombre:"Revisar y enviar fórmulas: avisar a clientes por la mañana",tipo:"diaria",area:"Laboratorio",empleada_id:"monica"}
+  ],
+  plantilla_gxc:[
+    {id:"gxc_1",nombre:"Revisar registro información del producto recepcionado"},
+    {id:"gxc_2",nombre:"Recepción y colocación de pedidos directos"},
+    {id:"gxc_3",nombre:"Etiquetado de lineales"},
+    {id:"gxc_4",nombre:"Ordenar y reponer la tienda"},
+    {id:"gxc_5",nombre:"Actualizar y reponer etiquetas de precios"},
+    {id:"gxc_6",nombre:"Controlar la exposición y el merchandising"},
+    {id:"gxc_7",nombre:"Dirección GxC: revisión de stock"},
+    {id:"gxc_8",nombre:"Entregar listado de prioridades producto D"},
+    {id:"gxc_9",nombre:"Repaso ABC del stock por categorías"},
+    {id:"gxc_10",nombre:"Control de caducidades mensuales"},
+    {id:"gxc_11",nombre:"Organizar devolución por caducidades"},
+    {id:"gxc_12",nombre:"Planificación de campañas, promos y escaparates"}
+  ],
+  registros:{},
+  historial:[]
+};
+
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let data = null;
+let driveFileId = null;
+let accessToken = null;
+let currentUser = null; // 'admin' | empleada_id
+let activeAdminTab = 'resumen';
+let saving = false;
+
+// ════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const esc = s => s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
+const today = () => new Date().toISOString().split('T')[0];
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+               'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+function mesLabel(){ const d=new Date(); return MESES[d.getMonth()]+' '+d.getFullYear(); }
+function mesKey(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+function toast(msg, type='ok'){
+  const t=$('toast'); t.textContent=msg;
+  t.style.background = type==='err' ? 'var(--red)' : type==='warn' ? 'var(--amber)' : 'var(--teal-d)';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ════════════════════════════════════════════
+//  URL PARAMS
+// ════════════════════════════════════════════
+function getParams(){
+  const p = new URLSearchParams(location.search);
+  const hash = location.hash.replace('#','');
+  const u = p.get('u') || hash || null;
+  const admin = p.has('admin') || u === 'admin';
+  return { u, admin };
+}
+
+// ════════════════════════════════════════════
+//  GOOGLE DRIVE API
+// ════════════════════════════════════════════
+async function driveRequest(url, opts={}){
+  if(!accessToken) throw new Error('Sin token de acceso');
+  const r = await fetch(url, {
+    ...opts,
+    headers:{ Authorization:`Bearer ${accessToken}`, ...(opts.headers||{}) }
+  });
+  if(!r.ok){
+    const err = await r.text();
+    throw new Error(`Drive API error ${r.status}: ${err}`);
+  }
+  const ct = r.headers.get('content-type')||'';
+  return ct.includes('json') ? r.json() : r.text();
+}
+
+async function findOrCreateFile(){
+  // Search for file in folder
+  const q = `name='${FILE_NAME}' and '${FOLDER_ID}' in parents and trashed=false`;
+  const res = await driveRequest(
+    `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`
+  );
+  if(res.files && res.files.length > 0){
+    driveFileId = res.files[0].id;
+    return false; // existing
+  }
+  // Create
+  const meta = { name:FILE_NAME, parents:[FOLDER_ID] };
+  const boundary = 'boundary_gt';
+  const body = [
+    `--${boundary}`,
+    'Content-Type: application/json; charset=UTF-8',
+    '',
+    JSON.stringify(meta),
+    `--${boundary}`,
+    'Content-Type: application/json',
+    '',
+    JSON.stringify(DEFAULT_DATA),
+    `--${boundary}--`
+  ].join('\r\n');
+  const created = await driveRequest(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+    { method:'POST',
+      headers:{'Content-Type':`multipart/related; boundary=${boundary}`},
+      body }
+  );
+  driveFileId = created.id;
+  return true; // new
+}
+
+async function loadFromDrive(){
+  await findOrCreateFile();
+  const content = await driveRequest(
+    `https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`
+  );
+  if(typeof content === 'string') return JSON.parse(content);
+  return content;
+}
+
+async function saveToDrive(d){
+  if(!driveFileId) return;
+  const json = JSON.stringify(d, null, 2);
+  await driveRequest(
+    `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,
+    { method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:json }
+  );
+}
+
+async function saveData(){
+  if(!accessToken || !data) return;
+  if(saving){ return; }
+  saving=true;
+  try{ await saveToDrive(data); }
+  catch(e){ toast('Error al guardar en Drive','err'); console.error(e); }
+  finally{ saving=false; }
+}
+
+// ════════════════════════════════════════════
+//  OAUTH
+// ════════════════════════════════════════════
+function initGoogleAuth(callback){
+  if(typeof google === 'undefined'){
+    setTimeout(()=>initGoogleAuth(callback), 200);
+    return;
+  }
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: async (resp) => {
+      if(resp.error){ toast('Error de autenticación','err'); return; }
+      accessToken = resp.access_token;
+      callback();
+    }
+  });
+  return client;
+}
+
+// ════════════════════════════════════════════
+//  LOCAL STORAGE (daily checks)
+// ════════════════════════════════════════════
+function getDailyKey(empId){ return `daily_${today()}_${empId}`; }
+function getDailyChecks(empId){
+  const raw = localStorage.getItem(getDailyKey(empId));
+  if(!raw) return {};
+  try{ return JSON.parse(raw); }catch{ return {}; }
+}
+function setDailyCheck(empId, taskId, val){
+  const checks = getDailyChecks(empId);
+  if(val) checks[taskId]=true; else delete checks[taskId];
+  localStorage.setItem(getDailyKey(empId), JSON.stringify(checks));
+}
+
+// ════════════════════════════════════════════
+//  REGISTROS (mensual, in Drive)
+// ════════════════════════════════════════════
+function getMonthKey(){ return mesKey(); }
+function getRegistros(empId){
+  const mk = getMonthKey();
+  if(!data.registros[mk]) return {};
+  return data.registros[mk][empId] || {};
+}
+function setRegistro(empId, taskId, val){
+  const mk = getMonthKey();
+  if(!data.registros[mk]) data.registros[mk]={};
+  if(!data.registros[mk][empId]) data.registros[mk][empId]={};
+  if(val) data.registros[mk][empId][taskId]=true;
+  else delete data.registros[mk][empId][taskId];
+  saveData();
+}
+
+// ════════════════════════════════════════════
+//  RENDER: LANDING
+// ════════════════════════════════════════════
+function renderLanding(){
+  $('header-right').innerHTML = '';
+  $('app').innerHTML = `
+    <div class="landing">
+      <h2>¿Quién eres?</h2>
+      <p>Selecciona tu nombre o crea un acceso directo con <code>?u=tu_nombre</code></p>
+      <div class="emp-grid">
+        ${(data||DEFAULT_DATA).empleadas.map(e=>`
+          <div class="emp-card" onclick="goToEmp('${e.id}')">
+            <div class="emp-avatar">${e.nombre[0]}</div>
+            <div class="emp-card-name">${esc(e.nombre)}</div>
+          </div>`).join('')}
+      </div>
+      <div class="admin-link">¿Eres Lucía? <a href="?admin">Ir al panel de administración →</a></div>
+    </div>`;
+}
+function goToEmp(id){ location.href = `?u=${id}`; }
+
+// ════════════════════════════════════════════
+//  RENDER: VISTA EMPLEADA
+// ════════════════════════════════════════════
+function renderEmpleada(empId){
+  const emp = data.empleadas.find(e=>e.id===empId);
+  if(!emp){ renderLanding(); return; }
+
+  // Header
+  $('header-right').innerHTML = `
+    <span class="emp-badge">👤 ${esc(emp.nombre)}</span>
+    <span class="mes-badge">📅 ${mesLabel()}</span>`;
+
+  // Daily tasks
+  const daily = data.tareas_globales.filter(t=>t.tipo==='diaria' && t.empleada_id===empId);
+  const dailyChecks = getDailyChecks(empId);
+
+  // Monthly tasks
+  const monthly = data.tareas_globales.filter(t=>t.tipo==='mensual' && t.empleada_id===empId);
+  const monthChecks = getRegistros(empId);
+
+  // GxC categories for this employee
+  const misCats = data.categorias.filter(c=>c.responsable_id===empId);
+
+  // Monthly done/total
+  const monthlyTotal = monthly.length + misCats.length * data.plantilla_gxc.length;
+  let monthlyDone = monthly.filter(t=>monthChecks[t.id]).length;
+  misCats.forEach(cat=>{
+    data.plantilla_gxc.forEach(gxc=>{
+      if(monthChecks[`${cat.id}_${gxc.id}`]) monthlyDone++;
+    });
+  });
+  const pct = monthlyTotal ? Math.round(monthlyDone/monthlyTotal*100) : 0;
+
+  // Progress bar HTML
+  const progressHtml = `
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span class="progress-label">Progreso mensual — ${mesLabel()}</span>
+        <span class="progress-count">${monthlyDone}/${monthlyTotal}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+
+  // Build sections HTML
+  let sectionsHtml = `<div class="content">`;
+
+  // SECTION: HOY
+  sectionsHtml += `<div class="task-group" style="margin-bottom:32px">
+    <div class="section-title">☀️ Hoy
+      <span class="section-subtitle">Tareas diarias · solo hoy</span>
+    </div>`;
+  if(!daily.length){
+    sectionsHtml+=`<p style="color:var(--muted);font-size:13px">No tienes tareas diarias asignadas.</p>`;
+  } else {
+    const areaMap={};
+    daily.forEach(t=>{ (areaMap[t.area]||(areaMap[t.area]=[])).push(t); });
+    Object.entries(areaMap).forEach(([area,tasks])=>{
+      sectionsHtml+=`<div class="group-label">${esc(area)}</div>`;
+      tasks.forEach(t=>{
+        const done = !!dailyChecks[t.id];
+        sectionsHtml+=`<div class="task-item${done?' done':''}" id="daily_${t.id}"
+          onclick="toggleDaily('${empId}','${t.id}',this)">
+          <div class="task-check"></div>
+          <span class="task-name">${esc(t.nombre)}</span>
+        </div>`;
+      });
+    });
+  }
+  sectionsHtml+=`</div>`;
+
+  // SECTION: ESTE MES
+  sectionsHtml += `<div class="task-group">
+    <div class="section-title">📋 Este mes
+      <span class="section-subtitle">Tareas mensuales</span>
+    </div>`;
+
+  if(!monthly.length && !misCats.length){
+    sectionsHtml+=`<p style="color:var(--muted);font-size:13px">No tienes tareas mensuales asignadas.</p>`;
+  } else {
+    // Group by area
+    const areaMap={};
+    monthly.forEach(t=>{ (areaMap[t.area]||(areaMap[t.area]=[])).push(t); });
+    Object.entries(areaMap).forEach(([area,tasks])=>{
+      const pending=tasks.filter(t=>!monthChecks[t.id]);
+      const done=tasks.filter(t=>!!monthChecks[t.id]);
+      sectionsHtml+=`<div class="group-label">${esc(area)}</div>`;
+      pending.forEach(t=>{
+        sectionsHtml+=`<div class="task-item" id="mon_${t.id}"
+          onclick="toggleMonthly('${empId}','${t.id}',this)">
+          <div class="task-check"></div>
+          <span class="task-name">${esc(t.nombre)}</span>
+        </div>`;
+      });
+      if(done.length){
+        const uid=`done_${area.replace(/\s/g,'_')}`;
+        sectionsHtml+=`<button class="collapse-toggle" id="btn_${uid}"
+          onclick="toggleCollapse('${uid}')">
+          <span class="arrow">▶</span> Ver completadas (${done.length})
+        </button>
+        <div id="${uid}" class="collapsed">`;
+        done.forEach(t=>{
+          sectionsHtml+=`<div class="task-item done" id="mon_${t.id}"
+            onclick="toggleMonthly('${empId}','${t.id}',this)">
+            <div class="task-check"></div>
+            <span class="task-name">${esc(t.nombre)}</span>
+          </div>`;
+        });
+        sectionsHtml+=`</div>`;
+      }
+    });
+
+    // GxC per category
+    if(misCats.length){
+      sectionsHtml+=`<div class="group-label" style="margin-top:16px">Mis categorías (GxC)</div>`;
+      misCats.forEach(cat=>{
+        const tasks=data.plantilla_gxc;
+        const pendingGxc=tasks.filter(gxc=>!monthChecks[`${cat.id}_${gxc.id}`]);
+        const doneGxc=tasks.filter(gxc=>!!monthChecks[`${cat.id}_${gxc.id}`]);
+        sectionsHtml+=`<div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:600;color:var(--teal-d);padding:8px 12px;
+            background:var(--teal-pale);border-radius:8px 8px 0 0;border:1px solid var(--teal-muted)">
+            📦 ${esc(cat.nombre)}
+          </div>`;
+        pendingGxc.forEach(gxc=>{
+          const key=`${cat.id}_${gxc.id}`;
+          sectionsHtml+=`<div class="task-item" id="mon_${key}"
+            onclick="toggleMonthly('${empId}','${key}',this)"
+            style="border-radius:0;border-top:none">
+            <div class="task-check"></div>
+            <span class="task-name">${esc(gxc.nombre)}</span>
+          </div>`;
+        });
+        if(doneGxc.length){
+          const uid=`gxc_done_${cat.id}`;
+          sectionsHtml+=`<button class="collapse-toggle" id="btn_${uid}"
+            onclick="toggleCollapse('${uid}')">
+            <span class="arrow">▶</span> Ver completadas (${doneGxc.length})
+          </button>
+          <div id="${uid}" class="collapsed">`;
+          doneGxc.forEach(gxc=>{
+            const key=`${cat.id}_${gxc.id}`;
+            sectionsHtml+=`<div class="task-item done" id="mon_${key}"
+              onclick="toggleMonthly('${empId}','${key}',this)"
+              style="border-radius:0;border-top:none">
+              <div class="task-check"></div>
+              <span class="task-name">${esc(gxc.nombre)}</span>
+            </div>`;
+          });
+          sectionsHtml+=`</div>`;
+        }
+        if(!pendingGxc.length && !doneGxc.length){
+          sectionsHtml+=`<div style="padding:8px 12px;font-size:12px;color:var(--muted)">Sin subtareas</div>`;
+        }
+        sectionsHtml+=`</div>`;
+      });
+    }
+  }
+
+  sectionsHtml+=`</div></div>`; // close task-group + content
+
+  $('app').innerHTML = progressHtml + sectionsHtml;
+}
+
+function toggleDaily(empId, taskId, el){
+  const checks = getDailyChecks(empId);
+  const newVal = !checks[taskId];
+  setDailyCheck(empId, taskId, newVal);
+  if(newVal){ el.classList.add('done'); }
+  else { el.classList.remove('done'); }
+}
+
+function toggleMonthly(empId, taskId, el){
+  const checks = getRegistros(empId);
+  const newVal = !checks[taskId];
+  setRegistro(empId, taskId, newVal);
+  if(newVal){
+    el.classList.add('done');
+    toast('Tarea completada ✓');
+  } else {
+    el.classList.remove('done');
+  }
+  // Update progress bar
+  updateProgressBar(empId);
+}
+
+function updateProgressBar(empId){
+  const monthly = data.tareas_globales.filter(t=>t.tipo==='mensual' && t.empleada_id===empId);
+  const misCats = data.categorias.filter(c=>c.responsable_id===empId);
+  const monthChecks = getRegistros(empId);
+  const total = monthly.length + misCats.length * data.plantilla_gxc.length;
+  let done = monthly.filter(t=>monthChecks[t.id]).length;
+  misCats.forEach(cat=>{
+    data.plantilla_gxc.forEach(gxc=>{
+      if(monthChecks[`${cat.id}_${gxc.id}`]) done++;
+    });
+  });
+  const pct = total ? Math.round(done/total*100) : 0;
+  const fill = document.querySelector('.progress-fill');
+  const count = document.querySelector('.progress-count');
+  if(fill) fill.style.width = pct+'%';
+  if(count) count.textContent = `${done}/${total}`;
+}
+
+function toggleCollapse(uid){
+  const el = $(uid);
+  const btn = $('btn_'+uid);
+  if(!el) return;
+  const isOpen = !el.classList.contains('collapsed');
+  if(isOpen){ el.classList.add('collapsed'); btn.classList.remove('open'); }
+  else { el.classList.remove('collapsed'); btn.classList.add('open'); }
+}
+
+// ════════════════════════════════════════════
+//  RENDER: ADMIN
+// ════════════════════════════════════════════
+function renderAdmin(){
+  $('header-right').innerHTML = `
+    <span class="emp-badge">🔑 Administración</span>
+    <span class="mes-badge">📅 ${mesLabel()}</span>
+    <button class="btn btn-ghost btn-sm" onclick="logoutAdmin()">Cerrar sesión</button>`;
+
+  $('app').innerHTML = `
+    <div class="tabs">
+      <button class="tab ${activeAdminTab==='resumen'?'active':''}" onclick="switchAdminTab('resumen')">Resumen del mes</button>
+      <button class="tab ${activeAdminTab==='historico'?'active':''}" onclick="switchAdminTab('historico')">Histórico</button>
+      <button class="tab ${activeAdminTab==='admin'?'active':''}" onclick="switchAdminTab('admin')">Administración</button>
+    </div>
+    <div class="content" style="max-width:1000px">
+      <div id="tab-resumen" class="tab-panel ${activeAdminTab==='resumen'?'active':''}"></div>
+      <div id="tab-historico" class="tab-panel ${activeAdminTab==='historico'?'active':''}"></div>
+      <div id="tab-admin" class="tab-panel ${activeAdminTab==='admin'?'active':''}"></div>
+    </div>`;
+
+  renderTabResumen();
+  renderTabHistorico();
+  renderTabAdmin();
+}
+
+function switchAdminTab(tab){
+  activeAdminTab=tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  event.target.classList.add('active');
+  $('tab-'+tab).classList.add('active');
+}
+
+// TAB: RESUMEN
+function renderTabResumen(){
+  const mk = getMonthKey();
+  const regs = data.registros[mk] || {};
+
+  // For each employee compute monthly tasks
+  const cards = data.empleadas.map(emp=>{
+    const monthly = data.tareas_globales.filter(t=>t.tipo==='mensual' && t.empleada_id===emp.id);
+    const cats = data.categorias.filter(c=>c.responsable_id===emp.id);
+    const total = monthly.length + cats.length * data.plantilla_gxc.length;
+    const empRegs = regs[emp.id] || {};
+    let done = monthly.filter(t=>empRegs[t.id]).length;
+    cats.forEach(cat=>{
+      data.plantilla_gxc.forEach(gxc=>{ if(empRegs[`${cat.id}_${gxc.id}`]) done++; });
+    });
+    const pct = total ? Math.round(done/total*100) : 0;
+    const allDone = done===total && total>0;
+    return { emp, monthly, cats, total, done, pct, allDone };
+  });
+
+  // Build pending tasks list per employee
+  const detailsHtml = cards.map(({emp,monthly,cats,total,done,pct})=>{
+    const empRegs = regs[emp.id]||{};
+    const pending = monthly.filter(t=>!empRegs[t.id]);
+    let pendingGxcHtml='';
+    cats.forEach(cat=>{
+      const pg=data.plantilla_gxc.filter(g=>!empRegs[`${cat.id}_${g.id}`]);
+      if(pg.length) pendingGxcHtml+=`<div style="font-size:11px;color:var(--muted);padding:4px 0 2px;font-weight:600">📦 ${esc(cat.nombre)}</div>`+
+        pg.map(g=>`<div style="padding:5px 0;font-size:13px;color:var(--text);border-bottom:1px solid #eef5f5">• ${esc(g.nombre)}</div>`).join('');
+    });
+    const noPending = pending.length===0 && !pendingGxcHtml;
+    return `<div class="emp-detail">
+      <div class="emp-detail-header" onclick="toggleEmpDetail('det_${emp.id}')">
+        <div>
+          <span class="name">${esc(emp.nombre)}</span>
+          <span class="prog-text" style="margin-left:12px">${done}/${total} completadas (${pct}%)</span>
+        </div>
+        <span style="font-size:20px;transition:transform .2s" id="arr_${emp.id}">▼</span>
+      </div>
+      <div class="emp-detail-body" id="det_${emp.id}">
+        ${noPending ? `<p style="font-size:13px;color:var(--green);font-weight:500">✓ Todo completado este mes</p>` :
+          `<p style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Pendientes</p>`+
+          pending.map(t=>`<div style="padding:6px 0;font-size:13px;border-bottom:1px solid #eef5f5;color:var(--text)">
+            <span style="color:var(--amber);margin-right:8px">⏳</span>${esc(t.nombre)}
+            <span style="font-size:11px;color:var(--muted);margin-left:8px">[${esc(t.area)}]</span>
+          </div>`).join('') + pendingGxcHtml}
+      </div>
+    </div>`;
+  }).join('');
+
+  $('tab-resumen').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div class="section-title" style="border:none;padding:0;margin:0">Resumen — ${mesLabel()}</div>
+      <button class="btn btn-danger" onclick="closeMes()">🔒 Cerrar mes</button>
+    </div>
+    <div class="kpi-grid">
+      ${cards.map(({emp,done,total,pct,allDone})=>`
+        <div class="kpi-card ${allDone?'all-done':''}">
+          <div class="emp-name">${esc(emp.nombre)}</div>
+          <div class="kpi-prog">${done}/${total} completadas</div>
+          <div class="mini-bar"><div class="mini-fill" style="width:${pct}%"></div></div>
+          <div class="pending-count">${allDone?'✓ Todo hecho':`${total-done} pendientes`}</div>
+        </div>`).join('')}
+    </div>
+    <div class="section-title" style="margin-top:8px">Detalle por empleada</div>
+    ${detailsHtml}`;
+}
+
+function toggleEmpDetail(id){
+  const body=$(id);
+  const arr=$('arr_'+id.replace('det_',''));
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open');
+  if(arr) arr.style.transform = isOpen?'':'rotate(180deg)';
+}
+
+function closeMes(){
+  if(!confirm(`¿Cerrar el mes de ${mesLabel()}? Esto guardará el resumen en el histórico y borrará los registros del mes actual.`)) return;
+  const mk = getMonthKey();
+  const regs = data.registros[mk]||{};
+  const summary = {
+    mes: mk,
+    label: mesLabel(),
+    empleadas: data.empleadas.map(emp=>{
+      const monthly = data.tareas_globales.filter(t=>t.tipo==='mensual' && t.empleada_id===emp.id);
+      const cats = data.categorias.filter(c=>c.responsable_id===emp.id);
+      const total = monthly.length + cats.length * data.plantilla_gxc.length;
+      const empRegs = regs[emp.id]||{};
+      let done = monthly.filter(t=>empRegs[t.id]).length;
+      cats.forEach(cat=>data.plantilla_gxc.forEach(gxc=>{ if(empRegs[`${cat.id}_${gxc.id}`]) done++; }));
+      return { id:emp.id, nombre:emp.nombre, done, total, pct: total?Math.round(done/total*100):0 };
+    })
+  };
+  if(!data.historial) data.historial=[];
+  data.historial.push(summary);
+  delete data.registros[mk];
+  saveData();
+  toast('Mes cerrado y guardado en el histórico ✓');
+  renderAdmin();
+}
+
+// TAB: HISTÓRICO
+function renderTabHistorico(){
+  const hist = (data.historial||[]).slice().reverse();
+  if(!hist.length){
+    $('tab-historico').innerHTML=`<div class="loading" style="padding:40px">
+      <p style="color:var(--muted)">No hay meses cerrados todavía.</p></div>`;
+    return;
+  }
+  const emps = data.empleadas;
+  const headers = emps.map(e=>`<th>${esc(e.nombre)}</th>`).join('');
+  const rows = hist.map(h=>{
+    const cells = emps.map(e=>{
+      const rec = h.empleadas.find(x=>x.id===e.id);
+      if(!rec) return `<td>—</td>`;
+      const cls = rec.pct>=90?'score-good':rec.pct>=60?'score-mid':'score-bad';
+      return `<td><span class="${cls}">${rec.done}/${rec.total} (${rec.pct}%)</span></td>`;
+    }).join('');
+    return `<tr><td>${esc(h.label)}</td>${cells}</tr>`;
+  }).join('');
+
+  $('tab-historico').innerHTML=`
+    <div class="section-title">Histórico de meses</div>
+    <div class="hist-table-wrap">
+      <table class="hist-table">
+        <thead><tr><th>Mes</th>${headers}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// TAB: ADMINISTRACIÓN
+function renderTabAdmin(){
+  const emps = data.empleadas;
+  const cats = data.categorias;
+  const tareas = data.tareas_globales;
+  const gxc = data.plantilla_gxc;
+
+  $('tab-admin').innerHTML=`
+    <!-- EMPLEADAS -->
+    <div class="admin-section">
+      <div class="admin-section-header">
+        <h3>👥 Empleadas</h3>
+        <button class="btn btn-primary btn-sm" onclick="openModalEmp()">+ Añadir</button>
+      </div>
+      <div class="admin-list">
+        ${emps.map(e=>`
+          <div class="admin-item">
+            <span class="item-text">${esc(e.nombre)}</span>
+            <span class="item-sub" style="font-size:11px;color:var(--muted)">id: ${e.id}</span>
+            <div class="admin-item-actions">
+              <button class="btn btn-ghost btn-xs" onclick="openModalEmp('${e.id}')">✏️</button>
+              <button class="btn btn-danger btn-xs" onclick="deleteEmp('${e.id}')">🗑</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- CATEGORÍAS -->
+    <div class="admin-section">
+      <div class="admin-section-header">
+        <h3>📦 Categorías</h3>
+        <button class="btn btn-primary btn-sm" onclick="openModalCat()">+ Añadir</button>
+      </div>
+      <div class="admin-list">
+        ${cats.map(c=>{
+          const resp = emps.find(e=>e.id===c.responsable_id);
+          return `<div class="admin-item">
+            <span class="item-text">${esc(c.nombre)}</span>
+            <span class="item-sub">Responsable: ${resp?esc(resp.nombre):'—'}</span>
+            <div class="admin-item-actions">
+              <button class="btn btn-ghost btn-xs" onclick="openModalCat('${c.id}')">✏️</button>
+              <button class="btn btn-danger btn-xs" onclick="deleteCat('${c.id}')">🗑</button>
+            </div>
+          </div>`;}).join('')}
+      </div>
+    </div>
+
+    <!-- TAREAS GLOBALES -->
+    <div class="admin-section">
+      <div class="admin-section-header">
+        <h3>📋 Tareas globales</h3>
+        <button class="btn btn-primary btn-sm" onclick="openModalTarea()">+ Añadir</button>
+      </div>
+      <div class="admin-list">
+        ${tareas.map(t=>{
+          const resp = t.empleada_id ? emps.find(e=>e.id===t.empleada_id) : null;
+          return `<div class="admin-item">
+            <span class="item-text">${esc(t.nombre)}</span>
+            <span class="item-sub">${esc(t.area)} · ${t.tipo} · ${resp?esc(resp.nombre):'sin asignar'}</span>
+            <div class="admin-item-actions">
+              <button class="btn btn-ghost btn-xs" onclick="openModalTarea('${t.id}')">✏️</button>
+              <button class="btn btn-danger btn-xs" onclick="deleteTarea('${t.id}')">🗑</button>
+            </div>
+          </div>`;}).join('')}
+      </div>
+    </div>
+
+    <!-- PLANTILLA GxC -->
+    <div class="admin-section">
+      <div class="admin-section-header">
+        <h3>🔧 Plantilla GxC</h3>
+        <button class="btn btn-primary btn-sm" onclick="openModalGxc()">+ Añadir</button>
+      </div>
+      <div class="admin-list">
+        ${gxc.map(g=>`
+          <div class="admin-item">
+            <span class="item-text">${esc(g.nombre)}</span>
+            <div class="admin-item-actions">
+              <button class="btn btn-ghost btn-xs" onclick="openModalGxc('${g.id}')">✏️</button>
+              <button class="btn btn-danger btn-xs" onclick="deleteGxc('${g.id}')">🗑</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+// ════════════════════════════════════════════
+//  MODAL HELPERS
+// ════════════════════════════════════════════
+function openModal(title, bodyHtml, footerHtml){
+  $('modal-title').textContent = title;
+  $('modal-body').innerHTML = bodyHtml;
+  $('modal-footer').innerHTML = footerHtml;
+  $('modal-overlay').classList.add('open');
+}
+function closeModal(e){
+  if(e && e.target !== $('modal-overlay')) return;
+  $('modal-overlay').classList.remove('open');
+}
+
+// ── EMPLEADAS CRUD ──
+function openModalEmp(id=null){
+  const emp = id ? data.empleadas.find(e=>e.id===id) : null;
+  openModal(
+    id ? 'Editar empleada' : 'Nueva empleada',
+    `<div class="form-row full">
+      <div class="fg"><label>Nombre *</label>
+        <input type="text" id="em-nombre" value="${emp?esc(emp.nombre):''}">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="fg"><label>ID (slug) *</label>
+        <input type="text" id="em-id" value="${emp?esc(emp.id):''}" placeholder="ej: maria" ${id?'disabled':''}>
+      </div>
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-primary" onclick="saveEmp('${id||''}')">Guardar</button>`
+  );
+}
+function saveEmp(id){
+  const nombre=$('em-nombre').value.trim();
+  const empId=id||$('em-id').value.trim().toLowerCase().replace(/\s/g,'_');
+  if(!nombre||!empId){toast('Nombre e ID son obligatorios','err');return;}
+  if(id){
+    const idx=data.empleadas.findIndex(e=>e.id===id);
+    data.empleadas[idx].nombre=nombre;
+  } else {
+    if(data.empleadas.find(e=>e.id===empId)){toast('ID ya existe','err');return;}
+    data.empleadas.push({id:empId,nombre});
+  }
+  saveData(); closeModal(); renderTabAdmin(); toast('Empleada guardada ✓');
+}
+function deleteEmp(id){
+  if(!confirm('¿Eliminar esta empleada?')) return;
+  data.empleadas=data.empleadas.filter(e=>e.id!==id);
+  saveData(); renderTabAdmin(); toast('Empleada eliminada');
+}
+
+// ── CATEGORÍAS CRUD ──
+function openModalCat(id=null){
+  const cat=id?data.categorias.find(c=>c.id===id):null;
+  const empOpts=data.empleadas.map(e=>
+    `<option value="${e.id}" ${cat&&cat.responsable_id===e.id?'selected':''}>${esc(e.nombre)}</option>`
+  ).join('');
+  openModal(
+    id?'Editar categoría':'Nueva categoría',
+    `<div class="form-row full">
+      <div class="fg"><label>Nombre *</label>
+        <input type="text" id="cat-nombre" value="${cat?esc(cat.nombre):''}">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="fg"><label>Responsable</label>
+        <select id="cat-resp"><option value="">— Sin asignar —</option>${empOpts}</select>
+      </div>
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-primary" onclick="saveCat('${id||''}')">Guardar</button>`
+  );
+}
+function saveCat(id){
+  const nombre=$('cat-nombre').value.trim();
+  const resp=$('cat-resp').value||null;
+  if(!nombre){toast('El nombre es obligatorio','err');return;}
+  if(id){
+    const idx=data.categorias.findIndex(c=>c.id===id);
+    data.categorias[idx]={...data.categorias[idx],nombre,responsable_id:resp};
+  } else {
+    data.categorias.push({id:'cat_'+Date.now(),nombre,responsable_id:resp});
+  }
+  saveData(); closeModal(); renderTabAdmin(); toast('Categoría guardada ✓');
+}
+function deleteCat(id){
+  if(!confirm('¿Eliminar esta categoría?')) return;
+  data.categorias=data.categorias.filter(c=>c.id!==id);
+  saveData(); renderTabAdmin(); toast('Categoría eliminada');
+}
+
+// ── TAREAS GLOBALES CRUD ──
+function openModalTarea(id=null){
+  const t=id?data.tareas_globales.find(t=>t.id===id):null;
+  const empOpts=data.empleadas.map(e=>
+    `<option value="${e.id}" ${t&&t.empleada_id===e.id?'selected':''}>${esc(e.nombre)}</option>`
+  ).join('');
+  const areas=['Gerencia','Administración','Compras','Almacén','Formación',
+    'Rutina diaria','Comunicación','Marketing','Fidelidad','Dispensación','Laboratorio'];
+  const areaOpts=areas.map(a=>`<option ${t&&t.area===a?'selected':''}>${a}</option>`).join('');
+  openModal(
+    id?'Editar tarea':'Nueva tarea',
+    `<div class="form-row full">
+      <div class="fg"><label>Nombre *</label>
+        <input type="text" id="ta-nombre" value="${t?esc(t.nombre):''}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>Tipo *</label>
+        <select id="ta-tipo">
+          <option value="diaria" ${t&&t.tipo==='diaria'?'selected':''}>Diaria</option>
+          <option value="mensual" ${(!t||t.tipo==='mensual')?'selected':''}>Mensual</option>
+        </select>
+      </div>
+      <div class="fg"><label>Área *</label>
+        <select id="ta-area">${areaOpts}</select>
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="fg"><label>Asignada a</label>
+        <select id="ta-emp"><option value="">— Sin asignar —</option>${empOpts}</select>
+      </div>
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-primary" onclick="saveTarea('${id||''}')">Guardar</button>`
+  );
+}
+function saveTarea(id){
+  const nombre=$('ta-nombre').value.trim();
+  const tipo=$('ta-tipo').value;
+  const area=$('ta-area').value;
+  const emp=$('ta-emp').value||null;
+  if(!nombre){toast('El nombre es obligatorio','err');return;}
+  if(id){
+    const idx=data.tareas_globales.findIndex(t=>t.id===id);
+    data.tareas_globales[idx]={...data.tareas_globales[idx],nombre,tipo,area,empleada_id:emp};
+  } else {
+    data.tareas_globales.push({id:'tg_'+Date.now(),nombre,tipo,area,empleada_id:emp});
+  }
+  saveData(); closeModal(); renderTabAdmin(); toast('Tarea guardada ✓');
+}
+function deleteTarea(id){
+  if(!confirm('¿Eliminar esta tarea?')) return;
+  data.tareas_globales=data.tareas_globales.filter(t=>t.id!==id);
+  saveData(); renderTabAdmin(); toast('Tarea eliminada');
+}
+
+// ── PLANTILLA GxC CRUD ──
+function openModalGxc(id=null){
+  const g=id?data.plantilla_gxc.find(g=>g.id===id):null;
+  openModal(
+    id?'Editar subtarea GxC':'Nueva subtarea GxC',
+    `<div class="form-row full">
+      <div class="fg"><label>Nombre *</label>
+        <input type="text" id="gxc-nombre" value="${g?esc(g.nombre):''}">
+      </div>
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+     <button class="btn btn-primary" onclick="saveGxc('${id||''}')">Guardar</button>`
+  );
+}
+function saveGxc(id){
+  const nombre=$('gxc-nombre').value.trim();
+  if(!nombre){toast('El nombre es obligatorio','err');return;}
+  if(id){
+    const idx=data.plantilla_gxc.findIndex(g=>g.id===id);
+    data.plantilla_gxc[idx].nombre=nombre;
+  } else {
+    data.plantilla_gxc.push({id:'gxc_'+Date.now(),nombre});
+  }
+  saveData(); closeModal(); renderTabAdmin(); toast('Subtarea GxC guardada ✓');
+}
+function deleteGxc(id){
+  if(!confirm('¿Eliminar esta subtarea?')) return;
+  data.plantilla_gxc=data.plantilla_gxc.filter(g=>g.id!==id);
+  saveData(); renderTabAdmin(); toast('Subtarea eliminada');
+}
+
+function logoutAdmin(){
+  accessToken=null;
+  currentUser=null;
+  location.href=location.pathname;
+}
+
+// ════════════════════════════════════════════
+//  RENDER: AUTH PANEL (admin login)
+// ════════════════════════════════════════════
+function renderAuthPanel(){
+  $('header-right').innerHTML='';
+  $('app').innerHTML=`
+    <div class="auth-panel">
+      <div style="font-size:48px;margin-bottom:16px">🔑</div>
+      <h2>Panel de administración</h2>
+      <p>Acceso restringido. Inicia sesión con tu cuenta de Google para continuar.</p>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px"
+        onclick="requestAuth()">
+        Iniciar sesión con Google
+      </button>
+      <div style="margin-top:20px"><a href="?" style="font-size:13px;color:var(--muted)">← Volver</a></div>
+    </div>`;
+}
+
+let authClient = null;
+function requestAuth(){
+  if(!authClient){
+    authClient = initGoogleAuth(async ()=>{
+      showLoading();
+      try{
+        data = await loadFromDrive();
+        currentUser='admin';
+        renderAdmin();
+      }catch(e){
+        toast('Error al cargar datos: '+e.message,'err');
+        renderAuthPanel();
+      }
+    });
+  }
+  authClient.requestAccessToken();
+}
+
+// ════════════════════════════════════════════
+//  RENDER: LOADING
+// ════════════════════════════════════════════
+function showLoading(msg='Cargando…'){
+  $('app').innerHTML=`<div class="loading"><div class="spinner"></div><span>${msg}</span></div>`;
+}
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+async function init(){
+  const {u, admin} = getParams();
+
+  if(admin){
+    renderAuthPanel();
+    return;
+  }
+
+  if(!u){
+    // No user param: show landing with default data (no Drive needed)
+    data = DEFAULT_DATA;
+    renderLanding();
+    return;
+  }
+
+  // Employee view: needs Drive data
+  showLoading('Cargando tus tareas…');
+
+  // For employee view, we need OAuth to read/write Drive
+  // Try silent token first, then prompt
+  authClient = initGoogleAuth(async ()=>{
+    try{
+      data = await loadFromDrive();
+      currentUser = u;
+      renderEmpleada(u);
+    }catch(e){
+      toast('Error al cargar datos: '+e.message,'err');
+      $('app').innerHTML=`<div class="auth-panel">
+        <div style="font-size:48px;margin-bottom:16px">⚠️</div>
+        <h2>Acceso a datos</h2>
+        <p>Para ver tus tareas necesitamos acceder al archivo compartido en Google Drive.</p>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px"
+          onclick="requestEmpAuth('${u}')">Autorizar acceso</button>
+        <div style="margin-top:20px"><a href="?" style="font-size:13px;color:var(--muted)">← Volver</a></div>
+      </div>`;
+    }
+  });
+
+  // Try to get token silently (won't work first time, but worth trying)
+  // We just show the prompt
+  $('app').innerHTML=`<div class="auth-panel">
+    <div style="font-size:48px;margin-bottom:16px">📋</div>
+    <h2>Mis tareas</h2>
+    <p>Haz clic para cargar tus tareas desde el archivo compartido.</p>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px"
+      onclick="requestEmpAuth('${u}')">Cargar mis tareas</button>
+    <div style="margin-top:20px"><a href="?" style="font-size:13px;color:var(--muted)">← Volver</a></div>
+  </div>`;
+}
+
+function requestEmpAuth(empId){
+  if(!authClient){
+    authClient = initGoogleAuth(async ()=>{
+      showLoading('Cargando tus tareas…');
+      try{
+        data = await loadFromDrive();
+        currentUser = empId;
+        renderEmpleada(empId);
+      }catch(e){
+        toast('Error al cargar datos','err');
+        init();
+      }
+    });
+  }
+  authClient.requestAccessToken();
+}
+
+init();
+</script>
+</body>
+</html>
