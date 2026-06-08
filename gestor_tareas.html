@@ -537,10 +537,13 @@ async function findOrCreateFile(){
 }
 
 async function loadFromDrive(){
+  dbg('loadFromDrive: buscando archivo…');
   await findOrCreateFile();
+  dbg('loadFromDrive: fileId='+driveFileId+' leyendo contenido…');
   const content = await driveRequest(
     `https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`
   );
+  dbg('loadFromDrive: contenido recibido tipo='+typeof content);
   if(typeof content === 'string') return JSON.parse(content);
   return content;
 }
@@ -577,29 +580,49 @@ function getTokenClient(){
     client_id: CLIENT_ID,
     scope: SCOPES,
     callback: async (resp) => {
+      dbg('OAuth callback recibido. error='+resp.error+' token='+(resp.access_token?'SÍ':'NO'));
       if(resp.error){
-        toast('Error de autenticación: '+resp.error,'err');
+        toast('Error OAuth: '+resp.error,'err');
+        dbg('ERROR OAuth: '+JSON.stringify(resp));
         return;
       }
       accessToken = resp.access_token;
+      dbg('Token OK, ejecutando callback…');
       if(_pendingCallback){
         const cb = _pendingCallback;
         _pendingCallback = null;
-        await cb();
+        try{ await cb(); }
+        catch(e){ dbg('ERROR en callback: '+e.message); toast('Error: '+e.message,'err'); }
+      } else {
+        dbg('No había pendingCallback!');
       }
     }
   });
   return _tokenClient;
 }
 
+function dbg(msg){
+  console.log('[GT]', msg);
+  const el = document.getElementById('debug-log');
+  if(el) el.innerHTML += '<div style="font-size:11px;padding:2px 0;border-bottom:1px solid #eee">'+new Date().toISOString().substr(11,8)+' — '+msg+'</div>';
+}
+
 function requestToken(callback){
-  // If google not loaded yet, wait
+  dbg('requestToken llamado');
   if(typeof google === 'undefined'){
+    dbg('google no cargado aún, reintentando…');
     setTimeout(()=>requestToken(callback), 200);
     return;
   }
+  dbg('google OK, pidiendo token…');
   _pendingCallback = callback;
-  getTokenClient().requestAccessToken();
+  try{
+    getTokenClient().requestAccessToken();
+    dbg('requestAccessToken() lanzado, esperando popup…');
+  }catch(e){
+    dbg('ERROR: '+e.message);
+    toast('Error OAuth: '+e.message,'err');
+  }
 }
 
 // ════════════════════════════════════════════
@@ -1340,6 +1363,7 @@ function renderEmpAuthPanel(empId){
       <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px"
         onclick="requestEmpAuth('${empId}')">Cargar mis tareas</button>
       <div style="margin-top:20px"><a href="?" style="font-size:13px;color:var(--muted)">← Volver</a></div>
+      <div id="debug-log" style="margin-top:24px;text-align:left;background:#f5f5f5;border:1px solid #ddd;border-radius:8px;padding:12px;max-height:200px;overflow-y:auto;font-family:monospace;color:#333"></div>
     </div>`;
 }
 
