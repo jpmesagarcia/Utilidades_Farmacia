@@ -318,7 +318,7 @@ header{background:var(--surface);border-bottom:2px solid var(--teal);padding:0 3
 const CLIENT_ID  = '418702665350-tjqll4c0fgpt59lvigaprcncok33o0hv';
 const FOLDER_ID  = '1sN3FoV1T6JnbiRlp3jXVZdmlCRVIdX_0';
 const FILE_NAME  = 'tareas_farmacia.json';
-const SCOPES     = 'https://www.googleapis.com/auth/drive';
+const SCOPES     = 'https://www.googleapis.com/auth/drive.file';
 
 // ════════════════════════════════════════════
 //  DEFAULT DATA
@@ -503,37 +503,43 @@ async function driveRequest(url, opts={}){
 }
 
 async function findOrCreateFile(){
-  // Search for file in folder
-  const q = `name='${FILE_NAME}' and '${FOLDER_ID}' in parents and trashed=false`;
+  dbg('findOrCreateFile: buscando '+FILE_NAME+'…');
+  // With drive.file scope, search only among files created by this app
+  const q = `name='${FILE_NAME}' and trashed=false`;
   const res = await driveRequest(
-    `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`
+    `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&spaces=drive`
   );
+  dbg('findOrCreateFile: encontrados '+( res.files ? res.files.length : 0)+' archivos');
   if(res.files && res.files.length > 0){
     driveFileId = res.files[0].id;
-    return false; // existing
+    dbg('findOrCreateFile: usando fileId='+driveFileId);
+    return false;
   }
-  // Create
-  const meta = { name:FILE_NAME, parents:[FOLDER_ID] };
-  const boundary = 'boundary_gt';
+  // Create new file (no folder, drive.file allows this)
+  dbg('findOrCreateFile: creando archivo nuevo…');
+  const meta = { name:FILE_NAME };
+  const jsonContent = JSON.stringify(DEFAULT_DATA);
+  const boundary = 'boundary_gt_'+Date.now();
   const body = [
-    `--${boundary}`,
+    '--'+boundary,
     'Content-Type: application/json; charset=UTF-8',
     '',
     JSON.stringify(meta),
-    `--${boundary}`,
-    'Content-Type: application/json',
+    '--'+boundary,
+    'Content-Type: application/json; charset=UTF-8',
     '',
-    JSON.stringify(DEFAULT_DATA),
-    `--${boundary}--`
+    jsonContent,
+    '--'+boundary+'--'
   ].join('\r\n');
   const created = await driveRequest(
     'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
     { method:'POST',
-      headers:{'Content-Type':`multipart/related; boundary=${boundary}`},
+      headers:{'Content-Type':'multipart/related; boundary='+boundary},
       body }
   );
   driveFileId = created.id;
-  return true; // new
+  dbg('findOrCreateFile: creado con id='+driveFileId);
+  return true;
 }
 
 async function loadFromDrive(){
